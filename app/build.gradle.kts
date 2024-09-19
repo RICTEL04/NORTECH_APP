@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.jetbrains.kotlin.android)
+    kotlin("plugin.serialization") version "1.9.20"
 }
 
 android {
@@ -30,6 +31,7 @@ android {
         }
     }
     compileOptions {
+        isCoreLibraryDesugaringEnabled = true
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_1_8
     }
@@ -50,6 +52,15 @@ android {
 }
 
 dependencies {
+    implementation (libs.androidx.material.icons.extended)
+
+    implementation(platform("io.github.jan-tennert.supabase:bom:2.6.0"))
+    implementation("io.github.jan-tennert.supabase:postgrest-kt")
+    implementation("io.github.jan-tennert.supabase:gotrue-kt")
+    implementation("io.github.jan-tennert.supabase:realtime-kt")
+    implementation("io.ktor:ktor-client-okhttp:2.3.4")
+
+
     implementation (libs.androidx.runtime.saveable)
     implementation (libs.androidx.navigation.compose)
     implementation(libs.androidx.core.ktx)
@@ -67,4 +78,7 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
+    implementation (libs.datetime)
+    coreLibraryDesugaring(libs.desugar.jdk.libs)
+
 }

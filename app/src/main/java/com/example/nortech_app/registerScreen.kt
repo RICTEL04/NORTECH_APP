@@ -19,6 +19,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -30,6 +31,9 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @Composable
 fun RegisterScreen(navController: NavHostController) {
@@ -39,6 +43,8 @@ fun RegisterScreen(navController: NavHostController) {
     var passwordVisible by remember { mutableStateOf(false) }
     var R_password by remember { mutableStateOf("") }
     var R_passwordVisible by remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
+    var respuesta by remember { mutableStateOf("") }
 
     Column(
         modifier = Modifier
@@ -119,11 +125,22 @@ fun RegisterScreen(navController: NavHostController) {
         Spacer(modifier = Modifier.height(24.dp))
 
         Button(
-            onClick = { navController.navigate("main") },
+            onClick = {
+                scope.launch(Dispatchers.IO) {
+                    //val resultado = fetchApiData(email, password)
+                    val resultado = register(nombre=name,correo = email, contraseña = password,contraseña2 = R_password)
+                    withContext(Dispatchers.Main) {
+                        respuesta = resultado
+                        if (respuesta == "1"){
+                            navController.navigate("main")
+                        }
+                    }
+                }
+            },
             modifier = Modifier
                 .fillMaxWidth()
         ) {
-            Text(text = "INGRESAR", color = Color.White)
+            Text(text = "Registrarse", color = Color.White)
         }
 
         Spacer(modifier = Modifier.height(16.dp))

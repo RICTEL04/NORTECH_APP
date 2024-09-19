@@ -1,8 +1,9 @@
 package com.example.nortech_app.Visits
 
 import android.annotation.SuppressLint
-import android.util.Log
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -10,29 +11,22 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.DatePicker
-import androidx.compose.material3.DatePickerDialog
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TimeInput
-import androidx.compose.material3.TimePickerState
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.rememberDatePickerState
-import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -40,268 +34,356 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
-import androidx.navigation.NavHostController
-import java.text.SimpleDateFormat
-import java.util.Calendar
-import java.util.Date
-import java.util.Locale
+import androidx.compose.ui.window.DialogProperties
+import com.vanpra.composematerialdialogs.MaterialDialog
+import com.vanpra.composematerialdialogs.datetime.date.datepicker
+import com.vanpra.composematerialdialogs.rememberMaterialDialogState
+import java.time.LocalDate
+import java.time.LocalTime
+import java.time.format.DateTimeFormatter
+
+
+val agendaFullMap = mapOf(
+    LocalDate.of(2024, 9, 7) to true,
+    LocalDate.of(2024, 9, 8) to true,
+    LocalDate.of(2024, 9, 10) to true
+)
+
+val agendaAvailabilityMap = mapOf(
+    LocalDate.of(2024, 9, 5) to
+            emptyList(),
+    LocalDate.of(2024, 9, 6) to
+            listOf(LocalTime.of(9, 0), LocalTime.of(10, 0), LocalTime.of(11, 0), LocalTime.of(13, 0), LocalTime.of(15, 0) ),
+    LocalDate.of(2024, 9, 9) to
+            listOf(LocalTime.of(9, 0), LocalTime.of(10, 0), LocalTime.of(11, 0)),
+    LocalDate.of(2024, 9, 11) to
+            emptyList(),
+    LocalDate.of(2024, 9, 12) to
+            listOf(LocalTime.of(15, 0), LocalTime.of(16, 0)),
+    LocalDate.of(2024, 9, 13) to
+            emptyList(),
+    LocalDate.of(2024, 9, 14) to
+            listOf(LocalTime.of(9, 0), LocalTime.of(16, 0)),
+    LocalDate.of(2024, 9, 15) to
+            emptyList(),
+    LocalDate.of(2024, 9, 16) to
+            listOf(LocalTime.of(10, 0), LocalTime.of(13, 0)),
+    LocalDate.of(2024, 9, 17) to
+            emptyList(),
+    LocalDate.of(2024, 9, 18) to
+            emptyList(),
+    LocalDate.of(2024, 9, 19) to
+            emptyList(),
+    LocalDate.of(2024, 9, 20) to
+            emptyList(),
+    LocalDate.of(2024, 9, 21) to
+            emptyList(),
+    LocalDate.of(2024, 9, 22) to
+            emptyList(),
+    LocalDate.of(2024, 9, 23) to
+            emptyList(),
+    LocalDate.of(2024, 9, 24) to
+            emptyList(),
+    LocalDate.of(2024, 9, 25) to
+            emptyList(),
+    LocalDate.of(2024, 9, 26) to
+            emptyList(),
+    LocalDate.of(2024, 9, 27) to
+            emptyList(),
+    LocalDate.of(2024, 9, 28) to
+            emptyList(),
+    LocalDate.of(2024, 9, 29) to
+            emptyList(),
+    LocalDate.of(2024, 9, 30) to
+            emptyList(),
+)
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DatePickerExamples(navController: NavHostController) {
+fun DateAndTimePicker(
+    agendaFullMap: Map<LocalDate, Boolean>,
+    agendaAvailabilityMap: Map<LocalDate, List<LocalTime>>
+) {
+    var pickedDate by remember { mutableStateOf<LocalDate?>(null) }
+    var pickedTime by remember { mutableStateOf<LocalTime?>(null) }
+    val selectedDateTimeList = remember { mutableStateListOf<Pair<LocalDate, LocalTime>>() }
+    val dateDialogState = rememberMaterialDialogState()
+    val timeDialogState = remember { mutableStateOf(false) }
 
+    val formattedDate by remember {
+        derivedStateOf {
+            pickedDate?.let {
+                DateTimeFormatter.ofPattern("MMM dd yyyy").format(it)
+            } ?: "No hay dia seleccionado"
+        }
+    }
 
-    //Date
-    var showModal by remember { mutableStateOf(false) }
-    var selectedDate by remember { mutableStateOf<Long?>(null) }
-    var formattedDate : String = ""
+    val formattedTime by remember {
+        derivedStateOf {
+            pickedTime?.let {
+                DateTimeFormatter.ofPattern("hh:mm").format(it)
+            } ?: "No hay hora seleccionada"
+        }
+    }
 
-    //Time
-    var showInputExample by remember { mutableStateOf(false) }
-    var showMenu by remember { mutableStateOf(true) }
-    var selectedTime: TimePickerState? by remember { mutableStateOf(null) }
-    val formatter = remember { SimpleDateFormat("hh:mm a", Locale.getDefault()) }
-    var formattedHour : String = ""
-
-    var cardList = remember { mutableStateListOf<Pair<String, String>>() }
 
     Scaffold(
-        topBar = {
-            TopAppBar(
-                navigationIcon = {
-                    IconButton(onClick = {
-                        navController.navigate("Solicitudes")
-                    }) {
-                        Icon(
-                            imageVector = Icons.Default.ArrowBack,
-                            contentDescription = "Regresar"
-                        )
-                    }
-                },
-                title = {})
-        },
-    ) { innerPadding ->
+        modifier = Modifier
+            .fillMaxSize()
+    ) {
+
+        Text(
+            text = "Calendario",
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 64.dp),
+            textAlign = TextAlign.Center,
+            fontSize = 30.sp
+
+        )
+
+        Spacer(modifier = Modifier.height(32.dp))
 
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(64.dp),
+                .padding(bottom = 80.dp, top = 128.dp), // Adjust this value if needed
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
+            verticalArrangement = Arrangement.Center
 
-            Text(
-                text = "Agendar cita",
-                fontSize = 30.sp
-            )
+        ) {
+            Spacer(modifier = Modifier.height(32.dp))
+            Button(onClick = {
+                dateDialogState.show()
+            }) {
+                Text(text = "Seleccionar fecha")
+            }
+
+            Text(text = formattedDate)
+
             Button(
                 onClick = {
-                    showModal = true
+                    timeDialogState.value = true
                 },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp)
+                enabled = pickedDate != null
             ) {
-                Text("Seleccionar dia")
+                Text(text = "Seleccionar tiempo")
             }
 
+            Text(text = formattedTime)
 
-            Text(
-                text = "Hora",
-                fontSize = 30.sp
-            )
+            Button(
+                onClick = {
+                    selectedDateTimeList.add(Pair(pickedDate!!, pickedTime!!))
+                    pickedTime = null
+                    pickedDate = null
+                    timeDialogState.value = false
 
-
-
-
-            Button(onClick = {
-                showInputExample = true
-            }) {
-                Text("Input time picker")
+                },
+                enabled = pickedDate != null && pickedTime != null
+            ) {
+                Text(text = "Agregar cita")
             }
 
-            when
-            {
+            //Spacer(modifier = Modifier.height(256.dp))
 
-                showInputExample -> InputUseStateExample(
-                    onDismiss = {
-                        showInputExample = false
-                        showMenu = true
-                    },
-                    onConfirm = {
-                            time ->
-                        selectedTime = time
-                        showInputExample = false
-                        showMenu = true
-                    },
-                )
 
-            }
+            if (selectedDateTimeList.isEmpty()) {
 
-            if (showModal) {
-                // [END_EXCLUDE]
-                DatePickerModal(
-                    onDateSelected = {
-                        selectedDate = it
-                        showModal = false
-                    },
-                    onDismiss = { showModal = false }
-                )
-            }
-
-            if (selectedDate != null) {
-                val calendar = Calendar.getInstance()
-                calendar.time = Date(selectedDate!!)
-                calendar.add(Calendar.DAY_OF_YEAR, 1) // Agrega un día
-                val newDate = calendar.time
-                formattedDate = SimpleDateFormat("MMM dd, yyyy", Locale.getDefault()).format(newDate)
-                Text("Fecha seleccionada: $formattedDate")
-            }
-            else
-            {
-                Text("No hay fecha seleccionada")
-            }
-
-            if (selectedTime != null) {
-                val cal = Calendar.getInstance()
-                cal.set(Calendar.HOUR_OF_DAY, selectedTime!!.hour)
-                cal.set(Calendar.MINUTE, selectedTime!!.minute)
-                cal.isLenient = false
-                formattedHour = formatter.format(cal.time)
-                Text("Hora seleccionada = $formattedHour")
-            } else {
-                Text("No hay hora seleccionada.")
-            }
-
-            Button(onClick = {
-                try {
-                    // Agregar un nuevo Card a la lista
-                    if(selectedDate != null && selectedTime != null)
-                    {
-                        cardList.add(Pair("Fecha $formattedDate", "Subtitle $formattedHour"))
-                        print("Par tamanio: ${cardList.size}")
-                        println(cardList[cardList.size - 1])
-                        selectedDate = null
-                        selectedTime = null
-                    }
-                } catch (e: Exception) {
-                    Log.e("CardListExample", "Error adding card: ${e.localizedMessage}")
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize(),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        modifier = Modifier
+                            .padding(top = 32.dp, bottom = 64.dp),
+                        text = "No hay \n citas elegidas",
+                        textAlign = TextAlign.Center,
+                        fontSize = 30.sp
+                    )
                 }
-            }) {
-                Text("Agregar opcion de cita")
-            }
-
-            // Mostrar las tarjetas
-            Spacer(modifier = Modifier.height(16.dp))
-
-            if(cardList.size > 0)
-            {
-                Column(modifier =
-                Modifier
-                    .fillMaxSize()
-                    .verticalScroll(rememberScrollState()),
 
 
-                    ) {
-                    for (item in cardList) {
-                        CustomCard(title = item.first, subtitle = item.second)
+            } else {
+
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(top = 32.dp, bottom = 64.dp)
+                ) {
+                    items(selectedDateTimeList) { (date, time) ->
+                        Card(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(vertical = 8.dp, horizontal = 32.dp)
+                                .height(64.dp),
+                            colors = CardDefaults.cardColors(
+                                containerColor = MaterialTheme.colorScheme.surfaceVariant
+                            )
+                        ) {
+                            Box(modifier = Modifier.fillMaxSize()) {
+
+                                // Botón de eliminar
+                                IconButton(
+                                    onClick = {
+                                        // Remover el item de la lista
+                                        selectedDateTimeList.remove(Pair(date, time))
+                                    },
+                                    modifier = Modifier
+                                        .align(Alignment.TopEnd)
+                                        .padding(4.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Delete,
+                                        contentDescription = "Eliminar",
+                                    )
+                                }
+
+                                Column(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(
+                                            start = 16.dp,
+                                            top = 16.dp
+                                        ) // Asegura espacio para el botón
+                                ) {
+                                    Text(
+                                        text = "${date.format(DateTimeFormatter.ofPattern("MMM dd yyyy"))}"
+                                    )
+
+                                    Text(
+                                        text = "${time.format(DateTimeFormatter.ofPattern("hh:mm a"))}"
+                                    )
+                                }
+                            }
+                        }
                     }
                 }
             }
         }
-    }
-}
 
-@OptIn(ExperimentalMaterial3Api::class)
+
+
+
+
+
+        if (timeDialogState.value) {
+                pickedDate?.let { date ->
+                    SelectTimeByDate(
+                        agendaAvailabilityMap = agendaAvailabilityMap,
+                        selectedDate = date,
+                        onConfirm = { pickedTime = it },
+                        onDismiss = { timeDialogState.value = false }
+                    )
+                }
+            }
+
+            MaterialDialog(
+                dialogState = dateDialogState,
+                buttons = {
+                    positiveButton(text = "Ok") {
+                        timeDialogState.value = true
+                    }
+                    negativeButton(text = "Cancel")
+                },
+                properties = DialogProperties(
+                    dismissOnClickOutside = true
+                )
+            ) {
+                datepicker(
+                    initialDate = LocalDate.now(),
+                    title = "Pick a Date",
+                    allowedDateValidator = { selectedDate ->
+                        val currentDate = LocalDate.now()
+                        val isAfterOrEqualToToday = !selectedDate.isBefore(currentDate)
+                        val isAgendaNotFull = agendaFullMap[selectedDate] != true
+                        isAfterOrEqualToToday && isAgendaNotFull
+                    }
+                ) { pickedDate = it }
+            }
+
+        }
+    }
+
 @Composable
-fun DatePickerModal(
-    onDateSelected: (Long?) -> Unit,
+fun SelectTimeByDate(
+    agendaAvailabilityMap: Map<LocalDate, List<LocalTime>>,
+    selectedDate: LocalDate,
+    onConfirm: (LocalTime) -> Unit,
     onDismiss: () -> Unit
 ) {
-    val datePickerState = rememberDatePickerState()
+    var selectedTime by remember { mutableStateOf<LocalTime?>(null) }
+    val availableTimes = getAvailableTimesForDate(selectedDate, agendaAvailabilityMap)
 
-    DatePickerDialog(
-        onDismissRequest = onDismiss,
-        confirmButton = {
-            TextButton(onClick = {
-                onDateSelected(datePickerState.selectedDateMillis)
-                onDismiss()
-            }) {
-                Text("OK")
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text("Cancel")
-            }
-        }
+    Dialog(
+        onDismissRequest = { onDismiss() }
+
     ) {
-        DatePicker(state = datePickerState)
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-// [START android_compose_components_input_usestate]
-@Composable
-fun InputUseStateExample(
-    onConfirm: (TimePickerState) -> Unit,
-    onDismiss: () -> Unit,
-) {
-    val currentTime = Calendar.getInstance()
-
-    val timePickerState = rememberTimePickerState(
-        initialHour = currentTime.get(Calendar.HOUR_OF_DAY),
-        initialMinute = currentTime.get(Calendar.MINUTE),
-        is24Hour = true,
-    )
-
-    Dialog(onDismissRequest = {onDismiss( )})
-    {
-
-        Card(
+        Surface(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(375.dp)
-                .padding(16.dp),
-            shape = RoundedCornerShape(16.dp),
-        )
-        {
+            ,
+            shape = MaterialTheme.shapes.medium,
+            tonalElevation = 8.dp
+        ) {
             Column(
-                modifier = Modifier
-                    .fillMaxSize(),
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier.padding(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
+                Text("Select a time for $selectedDate", style = MaterialTheme.typography.bodySmall)
 
-                Text(
-                    text = "Selecciona la hora",
-                    modifier = Modifier.padding(16.dp),
-                )
+                if (availableTimes.isEmpty()) {
+                    Text("No available times", color = MaterialTheme.colorScheme.error)
+                } else {
 
-                TimeInput(
-                    state = timePickerState,
-                )
+                    availableTimes.forEach { time ->
+                        Card(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 8.dp)
+                                .clickable {
+                                    selectedTime = time
+                                },
+                            colors = CardDefaults.cardColors(
+                                containerColor = if (selectedTime == time) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surface,
+                            ),
 
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth(),
-                    horizontalArrangement = Arrangement.Center,
-                ) {
-                    TextButton(
-                        onClick = { onDismiss() },
-                        modifier = Modifier.padding(8.dp),
-                    ) {
-                        Text("Dismiss")
+                            ) {
+                            Text(
+                                text = time.toString(),
+                                modifier = Modifier.padding(16.dp),
+                                color = if (selectedTime == time) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface
+                            )
+                        }
                     }
-                    TextButton(
-                        onClick = { onConfirm(timePickerState) },
-                        modifier = Modifier.padding(8.dp),
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    Row(
+                        horizontalArrangement = Arrangement.End,
+                        modifier = Modifier.fillMaxWidth()
                     ) {
-                        Text("Confirm")
+                        Button(onClick = { onDismiss() }) {
+                            Text("Cancel")
+                        }
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Button(
+                            onClick = {
+                                selectedTime?.let {
+                                    onConfirm(it)
+                                    onDismiss()
+                                }
+                            },
+                            enabled = selectedTime != null
+                        ) {
+                            Text("OK")
+                        }
                     }
                 }
             }
@@ -309,21 +391,11 @@ fun InputUseStateExample(
     }
 }
 
-@Composable
-fun CustomCard(title: String, subtitle: String) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 8.dp),
-        shape = RoundedCornerShape(8.dp),
-        elevation = CardDefaults.cardElevation(
-            defaultElevation = 4.dp
-        )
-    ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Text(text = title, style = MaterialTheme.typography.bodySmall)
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(text = subtitle, style = MaterialTheme.typography.bodySmall)
-        }
-    }
+
+
+fun getAvailableTimesForDate(selectedDate: LocalDate, agendaMap: Map<LocalDate, List<LocalTime>>): List<LocalTime> {
+    val workingHours = (9..16).map { hour -> LocalTime.of(hour, 0) }
+    val bookedHours = agendaMap[selectedDate] ?: emptyList()
+
+    return workingHours.filterNot { bookedHours.contains(it)}
 }

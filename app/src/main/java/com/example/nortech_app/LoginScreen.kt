@@ -92,10 +92,10 @@ fun LoginScreen(navController: NavHostController) {
         Button(
             onClick = {
                 scope.launch(Dispatchers.IO) {
-                    val resultado = fetchApiData(email, password)
+                    val resultado = login(email, password)
                     withContext(Dispatchers.Main) {
                         respuesta = resultado
-                        if (respuesta == "1"){
+                        if (respuesta == "authenticated"){
                             navController.navigate("Main")
                         }
                     }
@@ -104,7 +104,7 @@ fun LoginScreen(navController: NavHostController) {
             modifier = Modifier
                 .fillMaxWidth()
         ) {
-            Text(text = "$respuesta", color = Color.White)
+            Text(text = "Ingresar", color = Color.White)
         }
 
         Spacer(modifier = Modifier.height(16.dp))

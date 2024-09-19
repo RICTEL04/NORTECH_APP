@@ -1,5 +1,6 @@
 package com.example.nortech_app
 
+import HumanRightsView
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -26,7 +27,7 @@ import com.example.nortech_app.Students.NotificationsScreenEstudiante
 import com.example.nortech_app.Students.ProfileEstudianteScreen
 import com.example.nortech_app.Students.VerCasoViewEstudiante
 import com.example.nortech_app.Students.VerNotificacion
-import com.example.nortech_app.Visits.DatePickerExamples
+import com.example.nortech_app.Visits.DateAndTimePicker
 import com.example.nortech_app.Visits.LawCategoriesGrid
 import com.example.nortech_app.Visits.LegalSolutionsScreen
 import com.example.nortech_app.Visits.MainScreen
@@ -34,6 +35,8 @@ import com.example.nortech_app.Visits.NotificationsScreen
 import com.example.nortech_app.Visits.ProfileScreen
 import com.example.nortech_app.Visits.SolicitudesScreen
 import com.example.nortech_app.Visits.VerNotGeneral
+import com.example.nortech_app.Visits.agendaAvailabilityMap
+import com.example.nortech_app.Visits.agendaFullMap
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -66,10 +69,10 @@ fun LegalSolutionsApp() {
         }
         composable("Notification") { NotificationsScreen(navController) }
         composable("Profile") { ProfileScreen(navController) }
-        composable("Calendar") { DatePickerExamples(navController) }
         composable("Derechos") { LawCategoriesGrid(navController) }
-        composable("Solicitudes") { SolicitudesScreen(navController) }
+        composable("Solicitudes") { SolicitudesScreen(navController, agendaFullMap = agendaFullMap, agendaAvailabilityMap = agendaAvailabilityMap) }
         composable("VerNot") { VerNotGeneral(navController) }
+        composable("VerDerechos") { HumanRightsView(navController) }
 
         // Estudiantes
         composable("AgendaEstudiante") { AgendaScreen(navController) }

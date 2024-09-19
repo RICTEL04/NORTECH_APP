@@ -1,20 +1,30 @@
 [versions]
 agp = "8.5.1"
+bom = "2.6.0"
+datetime = "0.8.1-rc"
+desugar_jdk_libs = "2.1.2"
 kotlin = "1.9.0"
 coreKtx = "1.13.1"
 junit = "4.13.2"
 junitVersion = "1.2.1"
 espressoCore = "3.6.1"
+ktorClientOkhttp = "2.3.4"
 lifecycleRuntimeKtx = "2.8.4"
 activityCompose = "1.9.1"
 composeBom = "2024.04.01"
+materialIconsExtended = "1.7.0"
 navigationCompose = "2.7.7"
 runtimeSaveable = "1.6.8"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
+androidx-material-icons-extended = { module = "androidx.compose.material:material-icons-extended", version.ref = "materialIconsExtended" }
 androidx-navigation-compose = { module = "androidx.navigation:navigation-compose", version.ref = "navigationCompose" }
 androidx-runtime-saveable = { module = "androidx.compose.runtime:runtime-saveable", version.ref = "runtimeSaveable" }
+bom = { module = "io.github.jan-tennert.supabase:bom", version.ref = "bom" }
+datetime = { module = "io.github.vanpra.compose-material-dialogs:datetime", version.ref = "datetime" }
+desugar_jdk_libs = { module = "com.android.tools:desugar_jdk_libs", version.ref = "desugar_jdk_libs" }
+gotrue-kt = { module = "io.github.jan-tennert.supabase:gotrue-kt" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
 androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
@@ -28,6 +38,9 @@ androidx-ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-toolin
 androidx-ui-test-manifest = { group = "androidx.compose.ui", name = "ui-test-manifest" }
 androidx-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4" }
 androidx-material3 = { group = "androidx.compose.material3", name = "material3" }
+ktor-client-okhttp = { module = "io.ktor:ktor-client-okhttp", version.ref = "ktorClientOkhttp" }
+postgrest-kt = { module = "io.github.jan-tennert.supabase:postgrest-kt" }
+realtime-kt = { module = "io.github.jan-tennert.supabase:realtime-kt" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
