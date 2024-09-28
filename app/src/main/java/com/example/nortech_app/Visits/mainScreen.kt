@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -20,14 +21,15 @@ import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import androidx.navigation.NavHostController
+import viewmodel.UserViewModel
 
 @Composable
-fun MainScreen(navController: NavHostController) {
-    Scaffold(
-        bottomBar = {
-            BottomNavigationBar(navController, 0)
-        }
+fun MainScreen(viewModel: UserViewModel, navController: NavController) {
+    Scaffold(bottomBar = {
+        BottomNavigationBar(navController, 0)
+    }
     ) { paddingValues ->
         Surface(
             modifier = Modifier
@@ -53,7 +55,7 @@ fun MainScreen(navController: NavHostController) {
 
                 // First Button
                 Button(
-                    onClick = { navController.navigate("Solicitudes") },
+                    onClick = { navController.navigate("solicitudes") },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(180.dp),
@@ -80,3 +82,15 @@ fun MainScreen(navController: NavHostController) {
         }
     }
 }
+
+@Composable
+fun ErrorScreen(message: String) {
+    Text(message)
+}
+
+
+@Composable
+fun LoadingScreen() {
+    CircularProgressIndicator()
+}
+

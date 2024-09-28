@@ -16,6 +16,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -30,21 +31,19 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import viewmodel.UserViewModel
 
 @Composable
-fun RegisterScreen(navController: NavHostController) {
+fun RegisterScreen(viewModel: UserViewModel,navController: NavHostController, opcion: MutableState<String>) {
     var name by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
-    var R_password by remember { mutableStateOf("") }
-    var R_passwordVisible by remember { mutableStateOf(false) }
-    val scope = rememberCoroutineScope()
-    var respuesta by remember { mutableStateOf("") }
 
     Column(
         modifier = Modifier
@@ -102,41 +101,8 @@ fun RegisterScreen(navController: NavHostController) {
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        OutlinedTextField(
-            value = R_password,
-            onValueChange = { R_password = it },
-            label = { Text("Verifica Contraseña") },
-            modifier = Modifier.fillMaxWidth(),
-            singleLine = true,
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-            visualTransformation = if (R_passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-            trailingIcon = {
-                val image = if (R_passwordVisible) {
-                    painterResource(id = R.drawable.open)
-                } else {
-                    painterResource(id = R.drawable.close)
-                }
-                IconButton(onClick = { R_passwordVisible = !R_passwordVisible }) {
-                    Image(painter = image, contentDescription = null)
-                }
-            }
-        )
-
-        Spacer(modifier = Modifier.height(24.dp))
-
         Button(
-            onClick = {
-                scope.launch(Dispatchers.IO) {
-                    //val resultado = fetchApiData(email, password)
-                    val resultado = register(nombre=name,correo = email, contraseña = password,contraseña2 = R_password)
-                    withContext(Dispatchers.Main) {
-                        respuesta = resultado
-                        if (respuesta == "1"){
-                            navController.navigate("main")
-                        }
-                    }
-                }
-            },
+            onClick = { viewModel.signUp(email, password, name, "1", opcion) },
             modifier = Modifier
                 .fillMaxWidth()
         ) {
@@ -146,7 +112,7 @@ fun RegisterScreen(navController: NavHostController) {
         Spacer(modifier = Modifier.height(16.dp))
 
         Row {
-            Text(text = "¿Ya tienes una cuenta?", Modifier.padding(16.dp))
+            Text(text = "¿Ya tienes una cuenta?", Modifier.padding(13.dp))
             TextButton(onClick = { navController.navigate("login") }) {
                 Text(text = "Login", color = Color.Blue)
             }

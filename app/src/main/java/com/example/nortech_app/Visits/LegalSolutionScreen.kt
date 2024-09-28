@@ -38,10 +38,7 @@ import androidx.navigation.NavHostController
 import com.example.nortech_app.R
 
 @Composable
-fun LegalSolutionsScreen(navController: NavHostController, opcion: MutableState<String>) {
-    var expanded by remember { mutableStateOf(false) }
-    val options = listOf("visitante", "abogado", "estudiante")
-    val cuenta = opcion.value
+fun LegalSolutionsScreen(navController: NavHostController) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -75,27 +72,16 @@ fun LegalSolutionsScreen(navController: NavHostController, opcion: MutableState<
         )
 
         Button(
-            onClick = { navController.navigate("main") },
+            onClick = { navController.navigate("login") },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(vertical = 16.dp)
         ) {
-                Text(text = "Continuar como $cuenta")
+                Text(text = "Continuar")
         }
 
         Text(
-            text = "¿Ya tienes una cuenta? Login",
-            fontSize = 14.sp,
-            color = Color.Blue,
-            textDecoration = TextDecoration.Underline,
-            modifier = Modifier
-                .clickable {
-                    navController.navigate("login")
-                }
-        )
-        Spacer(modifier = Modifier.height(10.dp))
-        Text(
-            text = "Registrate",
+            text = "¿Aun no tienes una cuenta? Registrate",
             fontSize = 14.sp,
             color = Color.Blue,
             textDecoration = TextDecoration.Underline,
@@ -105,37 +91,5 @@ fun LegalSolutionsScreen(navController: NavHostController, opcion: MutableState<
                 }
         )
         Spacer(modifier = Modifier.height(10.dp))
-
-        // TextField with dropdown list with five options to select
-        Box(modifier = Modifier.fillMaxWidth()) {
-            TextField(
-                value = opcion.value,
-                onValueChange = { opcion.value = it },
-                label = { Text("Opcion inicio") },
-                modifier = Modifier.fillMaxWidth(),
-                trailingIcon = {
-                    IconButton(onClick = { expanded = true }) {
-                        Icon(Icons.Default.ArrowDropDown, contentDescription = null)
-                    }
-                },
-                readOnly = true
-            )
-
-            DropdownMenu(
-                expanded = expanded,
-                onDismissRequest = { expanded = false },
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                options.forEach { option ->
-                    DropdownMenuItem(
-                        onClick = {
-                            opcion.value = option
-                            expanded = false
-                        },
-                        text = { Text(option) }
-                    )
-                }
-            }
         }
     }
-}

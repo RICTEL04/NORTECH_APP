@@ -2,6 +2,8 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.jetbrains.kotlin.android)
     kotlin("plugin.serialization") version "1.9.20"
+    id("com.google.dagger.hilt.android") version "2.44" apply false
+    id("kotlin-kapt")
 }
 
 android {
@@ -52,7 +54,14 @@ android {
 }
 
 dependencies {
+    implementation(libs.hilt.android)
+    implementation(libs.androidx.biometric.ktx)
+    implementation(libs.androidx.appcompat)
+    kapt(libs.hilt.android.compiler)
+
     implementation (libs.androidx.material.icons.extended)
+
+    implementation (libs.androidx.biometric.v120)
 
     implementation(platform("io.github.jan-tennert.supabase:bom:2.6.0"))
     implementation("io.github.jan-tennert.supabase:postgrest-kt")
@@ -81,4 +90,8 @@ dependencies {
     implementation (libs.datetime)
     coreLibraryDesugaring(libs.desugar.jdk.libs)
 
+}
+
+kapt {
+    correctErrorTypes = true
 }

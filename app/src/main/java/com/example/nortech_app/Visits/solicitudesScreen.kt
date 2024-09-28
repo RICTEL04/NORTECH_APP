@@ -1,6 +1,7 @@
 package com.example.nortech_app.Visits
 
 import android.annotation.SuppressLint
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -27,6 +28,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
@@ -45,17 +47,32 @@ import androidx.navigation.NavController
 import com.vanpra.composematerialdialogs.MaterialDialog
 import com.vanpra.composematerialdialogs.datetime.date.datepicker
 import com.vanpra.composematerialdialogs.rememberMaterialDialogState
+import viewmodel.UserViewModel
+import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
+
+
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun SolicitudesScreen(
     navController: NavController,
-    agendaFullMap: Map<LocalDate, Boolean>,
-    agendaAvailabilityMap: Map<LocalDate, List<LocalTime>>
+    viewModel: UserViewModel
 ) {
+
+
+    val scheduledDates by remember { viewModel.scheduledDates }
+
+    // Llamar a getHoras() cuando la pantalla se inicializa
+    LaunchedEffect(Unit) {
+        viewModel.getHoras()
+    }
+
+    val agendaAvailabilityMap = generateAgendaAvailabilityMap(scheduledDates ?: emptyMap(),60L)
+
+    var textFieldValue by remember { mutableStateOf("") }
     var expanded by remember { mutableStateOf(false) }
     var selectedOption by remember { mutableStateOf("") }
     val options =
@@ -65,6 +82,7 @@ fun SolicitudesScreen(
     var selectedDateTimeList = remember { mutableStateListOf<Pair<LocalDate, LocalTime>>() }
     val dateDialogState = rememberMaterialDialogState()
     val timeDialogState = remember { mutableStateOf(false) }
+    var isDateValid by remember { mutableStateOf(false) }
 
     val formattedDate by remember {
         derivedStateOf {
@@ -103,7 +121,7 @@ fun SolicitudesScreen(
                 textAlign = TextAlign.Center
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(8.dp))
 
             // Text in gray saying "Para realizar una solicitud debes completar la informacion en tu perfil"
             Text(
@@ -113,7 +131,7 @@ fun SolicitudesScreen(
                 textAlign = TextAlign.Center
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(8.dp))
 
             // Little text saying "Motivo"
             Text(
@@ -159,25 +177,29 @@ fun SolicitudesScreen(
 
             // TextField to add a description
             TextField(
-                value = "",
-                onValueChange = { /* Handle text change */ },
+                value = textFieldValue, // El valor del campo de texto
+                onValueChange = { newText -> textFieldValue = newText }, // Actualizar el valor del campo de texto cuando cambie
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(150.dp),
+                    .height(128.dp),
                 label = { Text("Descripción") },
-                singleLine = false,
-                maxLines = 5
+                singleLine = false, // Permitir múltiples líneas
+                maxLines = 5 // Limitar a 5 líneas
             )
 
             Spacer(modifier = Modifier.height(16.dp))
             Row(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
+
+                //Boton para agregar fecha
                 Button(onClick = {
                     dateDialogState.show()
+                    print(viewModel.getHoras())
                 }) {
                     Text(text = "Seleccionar fecha")
                 }
+
                 Spacer(modifier = Modifier.padding(10.dp))
 
                 Button(
@@ -189,13 +211,20 @@ fun SolicitudesScreen(
                     Text(text = "Seleccionar tiempo")
                 }
                 Spacer(modifier = Modifier.padding(10.dp))
-                }
+            }
             Spacer(modifier = Modifier.padding(5.dp))
             Column (modifier = Modifier.fillMaxWidth(),
                 horizontalAlignment = Alignment.CenterHorizontally){
                 Row() {
                     Button(
                         onClick = {
+                            pickedDate?.let { it1 ->
+                                pickedTime?.let { it2 ->
+                                    addAvailability(agendaAvailabilityMap,
+                                        it1, it2
+                                    )
+                                }
+                            }
                             selectedDateTimeList.add(Pair(pickedDate!!, pickedTime!!))
                             pickedTime = null
                             pickedDate = null
@@ -209,17 +238,22 @@ fun SolicitudesScreen(
                 }
             }
             if (selectedDateTimeList.isEmpty()) {
-                    Text(
-                        modifier = Modifier
-                            .padding(top = 20.dp, bottom = 20.dp),
-                        text = "No hay citas elegidas",
-                        textAlign = TextAlign.Center,
-                        fontSize = 30.sp
-                    )
-                }
+                Text(
+                    modifier = Modifier
+                        .padding(top = 20.dp, bottom = 20.dp),
+                    text = "No hay citas elegidas",
+                    textAlign = TextAlign.Center,
+                    fontSize = 30.sp
+                )
+            }
             else {
                 LazyColumn(
-                ) {
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f)
+                        .padding(top = 20.dp, bottom = 20.dp),
+
+                    ) {
                     items(selectedDateTimeList) { (date, time) ->
                         Card(
                             modifier = Modifier
@@ -236,6 +270,7 @@ fun SolicitudesScreen(
                                 IconButton(
                                     onClick = {
                                         // Remover el item de la lista
+                                        removeAvailability(agendaAvailabilityMap, date, time)
                                         selectedDateTimeList.remove(Pair(date, time))
                                     },
                                     modifier = Modifier
@@ -266,24 +301,29 @@ fun SolicitudesScreen(
                     }
                 }
             }
-            Column (modifier = Modifier.fillMaxWidth(),
+
+            Column (modifier =
+            Modifier
+                .fillMaxWidth()
+                .padding(bottom = 32.dp)
+                ,
                 horizontalAlignment = Alignment.CenterHorizontally) {
-                    // Button with text "Enviar solicitud"
-                    Button(
-                        onClick = { /* Handle send request */ },
-                        modifier = Modifier.fillMaxWidth(),
-                    ) {
-                        Text(text = "Enviar solicitud", fontSize = 18.sp)
-                    }
+                // Button with text "Enviar solicitud"
+                Button(
+                    onClick = { /* Handle send request */ },
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Text(text = "Enviar solicitud", fontSize = 18.sp)
+                }
 
-                    Spacer(modifier = Modifier.height(5.dp))
+                Spacer(modifier = Modifier.height(5.dp))
 
-                    // Text saying "Al realizar una solicitud, acepta que haya un estudiante presente en la asesoría"
-                    Text(
-                        text = "Al realizar una solicitud, acepta que haya un estudiante presente en la asesoría",
-                        fontSize = 12.sp,
-                        color = Color.Gray
-                    )
+                // Text saying "Al realizar una solicitud, acepta que haya un estudiante presente en la asesoría"
+                Text(
+                    text = "Al realizar una solicitud, acepta que haya un estudiante presente en la asesoría",
+                    fontSize = 12.sp,
+                    color = Color.Gray
+                )
 
 
             }
@@ -302,8 +342,17 @@ fun SolicitudesScreen(
             MaterialDialog(
                 dialogState = dateDialogState,
                 buttons = {
-                    positiveButton(text = "Ok") {
-                        timeDialogState.value = true
+
+                    //Positive button, si la fecha no es valida se desactiva el boton ok
+                    positiveButton(
+                        text = "Ok",
+                        disableDismiss = !isDateValid
+                    ){
+                        if(isDateValid)
+                        {
+                            timeDialogState.value = true
+                            dateDialogState.showing = false
+                        }
                     }
                     negativeButton(text = "Cancel")
                 },
@@ -314,16 +363,26 @@ fun SolicitudesScreen(
                 datepicker(
                     initialDate = LocalDate.now(),
                     title = "Pick a Date",
+                    // Este parámetro espera que el validador se ejecute para cada fecha seleccionada
                     allowedDateValidator = { selectedDate ->
                         val currentDate = LocalDate.now()
                         val isAfterOrEqualToToday = !selectedDate.isBefore(currentDate)
-                        val isAgendaNotFull = agendaFullMap[selectedDate] != true
-                        isAfterOrEqualToToday && isAgendaNotFull
+
+                        val isNotWeekend = selectedDate.dayOfWeek != DayOfWeek.SATURDAY && selectedDate.dayOfWeek != DayOfWeek.SUNDAY
+
+                        isAfterOrEqualToToday && isNotWeekend
+                    },
+                    // Cuando el usuario selecciona una nueva fecha, actualizamos isDateValid
+                    onDateChange = { selectedDate ->
+                        pickedDate = selectedDate
+                        // Validar la fecha seleccionada en el cambio de fecha
+                        val currentDate = LocalDate.now()
+                        val isAfterOrEqualToToday = !selectedDate.isBefore(currentDate)
+                        val isNotWeekend = selectedDate.dayOfWeek != DayOfWeek.SATURDAY && selectedDate.dayOfWeek != DayOfWeek.SUNDAY
+                        isDateValid = isAfterOrEqualToToday &&  isNotWeekend
                     }
-                ) { pickedDate = it }
+                )
             }
-
-
             }
         }
-    }
+}

@@ -1,8 +1,12 @@
 [versions]
 agp = "8.5.1"
+biometric = "1.2.0-alpha05"
+biometricVersion = "1.2.0"
 bom = "2.6.0"
 datetime = "0.8.1-rc"
 desugar_jdk_libs = "2.1.2"
+hiltAndroid = "2.44"
+hiltAndroidCompiler = "2.44"
 kotlin = "1.9.0"
 coreKtx = "1.13.1"
 junit = "4.13.2"
@@ -15,8 +19,12 @@ composeBom = "2024.04.01"
 materialIconsExtended = "1.7.0"
 navigationCompose = "2.7.7"
 runtimeSaveable = "1.6.8"
+biometricKtx = "1.1.0"
+appcompat = "1.7.0"
 
 [libraries]
+androidx-biometric = { module = "androidx.biometric:biometric", version.ref = "biometric" }
+androidx-biometric-v120 = { module = "androidx.biometric:biometric", version.ref = "biometricVersion" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-material-icons-extended = { module = "androidx.compose.material:material-icons-extended", version.ref = "materialIconsExtended" }
 androidx-navigation-compose = { module = "androidx.navigation:navigation-compose", version.ref = "navigationCompose" }
@@ -25,6 +33,8 @@ bom = { module = "io.github.jan-tennert.supabase:bom", version.ref = "bom" }
 datetime = { module = "io.github.vanpra.compose-material-dialogs:datetime", version.ref = "datetime" }
 desugar_jdk_libs = { module = "com.android.tools:desugar_jdk_libs", version.ref = "desugar_jdk_libs" }
 gotrue-kt = { module = "io.github.jan-tennert.supabase:gotrue-kt" }
+hilt-android = { module = "com.google.dagger:hilt-android", version.ref = "hiltAndroid" }
+hilt-android-compiler = { module = "com.google.dagger:hilt-android-compiler", version.ref = "hiltAndroidCompiler" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
 androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
@@ -41,6 +51,8 @@ androidx-material3 = { group = "androidx.compose.material3", name = "material3" 
 ktor-client-okhttp = { module = "io.ktor:ktor-client-okhttp", version.ref = "ktorClientOkhttp" }
 postgrest-kt = { module = "io.github.jan-tennert.supabase:postgrest-kt" }
 realtime-kt = { module = "io.github.jan-tennert.supabase:realtime-kt" }
+androidx-biometric-ktx = { group = "androidx.biometric", name = "biometric-ktx", version.ref = "biometricKtx" }
+androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
