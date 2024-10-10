@@ -39,7 +39,7 @@ import kotlinx.coroutines.withContext
 import viewmodel.UserViewModel
 
 @Composable
-fun RegisterScreen(viewModel: UserViewModel,navController: NavHostController, opcion: MutableState<String>) {
+fun RegisterScreen(viewModel: UserViewModel,navController: NavHostController, opcion: String) {
     var name by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -102,7 +102,7 @@ fun RegisterScreen(viewModel: UserViewModel,navController: NavHostController, op
         Spacer(modifier = Modifier.height(16.dp))
 
         Button(
-            onClick = { viewModel.signUp(email, password, name, "1", opcion) },
+            onClick = { viewModel.signUp(email, password, name, "1")},
             modifier = Modifier
                 .fillMaxWidth()
         ) {

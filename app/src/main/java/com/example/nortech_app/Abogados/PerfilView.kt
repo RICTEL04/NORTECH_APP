@@ -18,7 +18,9 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -28,11 +30,17 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.example.nortech_app.R
+import com.example.nortech_app.sendNotification
+import viewmodel.UserViewModel
 
 //Perfil
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun PerfilView(navController: NavHostController) {
+fun PerfilView(viewModel: UserViewModel, navController: NavHostController) {
+    LaunchedEffect(Unit) {
+        viewModel.getName()
+        viewModel.getEmail()
+    }
     Scaffold(
         topBar = {
             TopAppBar(
@@ -42,12 +50,17 @@ fun PerfilView(navController: NavHostController) {
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            text = "Perfil",
+                            text = "PERFIL",
                             fontWeight = FontWeight.Bold,
-                            fontSize = 35.sp
+                            fontSize = 28.sp, // Reduce ligeramente el tamaño
+                            color = Color(0xFF1E88E5) // Azul suave
                         )
                     }
-                })
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = Color(0xFFE3F2FD) // Fondo azul claro
+                )
+            )
         },
         bottomBar = {
             BottomBarAbogado(navController, 5)
@@ -74,7 +87,7 @@ fun PerfilView(navController: NavHostController) {
                     )
                     Spacer(modifier = Modifier.width(16.dp))
                     Column {
-                        Text(text = "Van Hohenheim", fontWeight = FontWeight.Bold, fontSize = 25.sp)
+                        Text(text = viewModel.userName.value, fontWeight = FontWeight.Bold, fontSize = 25.sp)
                         Text(text = "Abogado", fontSize = 20.sp, color = Color.Gray)
                     }
                 }
@@ -88,14 +101,15 @@ fun PerfilView(navController: NavHostController) {
 
                 InfoRow(label = "Edad", value = "60")
                 InfoRow(label = "Sexo", value = "H")
-                InfoRow(label = "Correo", value = "VanHohenheim@gmail.com")
+                InfoRow(label = "Correo", value = viewModel.email.value)
                 InfoRow(label = "Identificaciones", value = "")
 
                 Spacer(modifier = Modifier.height(32.dp))
 
                 // Logout Button
                 Button(
-                    onClick = { navController.navigate("Home") },
+                    onClick = { navController.navigate("Home")
+                        sendNotification("Sesion cerrada")},
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Text(text = "Cerrar sesión")

@@ -1,6 +1,7 @@
 package com.example.nortech_app.Visits
 
 import android.annotation.SuppressLint
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -21,14 +22,18 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
@@ -43,18 +48,28 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.DialogProperties
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.liveData
+import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
 import com.vanpra.composematerialdialogs.MaterialDialog
 import com.vanpra.composematerialdialogs.datetime.date.datepicker
 import com.vanpra.composematerialdialogs.rememberMaterialDialogState
+import io.github.jan.supabase.createSupabaseClient
+import io.github.jan.supabase.gotrue.Auth
+import io.github.jan.supabase.gotrue.SessionStatus
+import io.github.jan.supabase.postgrest.Postgrest
+import kotlinx.coroutines.Dispatchers
+import model.Solicitud
 import viewmodel.UserViewModel
 import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
+import java.time.format.DateTimeParseException
 
 
-
+@OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun SolicitudesScreen(
@@ -64,13 +79,59 @@ fun SolicitudesScreen(
 
 
     val scheduledDates by remember { viewModel.scheduledDates }
+    val allSolicitudes by remember { viewModel.allSolicitudes }
+    val nameByID by remember { viewModel.nameByID }
+    val solicitudesByCliente by remember { viewModel.solicitudesByCliente }
 
-    // Llamar a getHoras() cuando la pantalla se inicializa
+    // Create mutable states to hold copies of the data
+    var copiedScheduledDates by remember { mutableStateOf<Map<LocalDate, MutableList<LocalTime>>>(emptyMap()) }
+    var copiedSolicitudesByCliente by remember { mutableStateOf<List<Solicitud>>(emptyList()) }
+
+    Log.d("UserRepository2", "Name XDDDD: $nameByID")
+
+    // Call getHoras() when the screen initializes
     LaunchedEffect(Unit) {
         viewModel.getHoras()
+        viewModel.getAllSolicitudes()
+        viewModel.getSolicitudesByClienteId()
     }
 
-    val agendaAvailabilityMap = generateAgendaAvailabilityMap(scheduledDates ?: emptyMap(),60L)
+    // Copy the scheduled dates and solicitudes by cliente when they are available
+    LaunchedEffect(scheduledDates, solicitudesByCliente) {
+        copiedScheduledDates = (scheduledDates ?: emptyMap()) as Map<LocalDate, MutableList<LocalTime>>
+        copiedSolicitudesByCliente = solicitudesByCliente ?: emptyList()
+    }
+
+
+
+    Log.d("UserSolScreenGetSolicitudesByClienteId", "By Id Solicitudes obtenidas: $solicitudesByCliente")
+    Log.d("UserSolScreenGetSolicitudesByClienteId", "Todas Solicitudes obtenidas: $allSolicitudes")
+
+    Log.d("UserRepository8", "Copied Scheduled Dates: $copiedScheduledDates")
+    Log.d("UserRepository8", "Copied Solicitudes: $copiedSolicitudesByCliente")
+
+
+
+    var agendaAvailabilityMap = generateAgendaAvailabilityMap(scheduledDates ?: emptyMap(),90L)
+
+
+    copiedSolicitudesByCliente.forEach { solicitud ->
+        val fecha = LocalDate.of(solicitud.anio.toInt(), solicitud.mes.toInt(), solicitud.dia.toInt())
+        // Intenta analizar la hora con los dos formatos
+
+        val formatter = DateTimeFormatter.ofPattern("h:mm a") // para "8:00 AM" o "8:00 PM"
+        val formatterWithLeadingZero = DateTimeFormatter.ofPattern("HH:mm") // para "08:00"
+        // Intenta analizar la hora con los dos formatos
+        val hora = try {
+            LocalTime.parse(solicitud.hora, formatter)
+        } catch (e: DateTimeParseException) {
+            LocalTime.parse(solicitud.hora, formatterWithLeadingZero)
+        }
+
+        addAvailability(agendaAvailabilityMap, fecha, hora)
+    }
+
+
 
     var textFieldValue by remember { mutableStateOf("") }
     var expanded by remember { mutableStateOf(false) }
@@ -84,23 +145,28 @@ fun SolicitudesScreen(
     val timeDialogState = remember { mutableStateOf(false) }
     var isDateValid by remember { mutableStateOf(false) }
 
-    val formattedDate by remember {
-        derivedStateOf {
-            pickedDate?.let {
-                DateTimeFormatter.ofPattern("MMM dd yyyy").format(it)
-            } ?: "No hay dia seleccionado"
-        }
-    }
-
-    val formattedTime by remember {
-        derivedStateOf {
-            pickedTime?.let {
-                DateTimeFormatter.ofPattern("hh:mm").format(it)
-            } ?: "No hay hora seleccionada"
-        }
-    }
 
     Scaffold(
+        topBar = {
+            TopAppBar(
+                title = {
+                    Box(
+                        modifier = Modifier.fillMaxWidth(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "SOLICITUDES",
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 35.sp, // Reduce ligeramente el tamaño
+                            color = Color(0xFF1E88E5) // Azul suave
+                        )
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = Color(0xFFE3F2FD) // Fondo azul claro
+                )
+            )
+        },
         bottomBar = {
             BottomNavigationBar(navController, 1)
         }
@@ -113,30 +179,11 @@ fun SolicitudesScreen(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
 
-            // Text in bold saying "Solicitudes"
-            Text(
-                text = "Solicitudes",
-                fontSize = 34.sp,
-                fontWeight = FontWeight.Bold,
-                textAlign = TextAlign.Center
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            // Text in gray saying "Para realizar una solicitud debes completar la informacion en tu perfil"
-            Text(
-                text = "Para realizar una solicitud debes completar la información en tu perfil",
-                fontSize = 14.sp,
-                color = Color.Gray,
-                textAlign = TextAlign.Center
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
             // Little text saying "Motivo"
             Text(
                 text = "Motivo",
-                fontSize = 14.sp
+                fontSize = 25.sp,
+                fontWeight = FontWeight.Bold
             )
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -196,7 +243,10 @@ fun SolicitudesScreen(
                 Button(onClick = {
                     dateDialogState.show()
                     print(viewModel.getHoras())
-                }) {
+                },
+                    enabled = selectedDateTimeList.size < 3
+
+                ) {
                     Text(text = "Seleccionar fecha")
                 }
 
@@ -206,7 +256,7 @@ fun SolicitudesScreen(
                     onClick = {
                         timeDialogState.value = true
                     },
-                    enabled = pickedDate != null
+                    enabled = pickedDate != null && selectedDateTimeList.size < 3
                 ) {
                     Text(text = "Seleccionar tiempo")
                 }
@@ -230,8 +280,10 @@ fun SolicitudesScreen(
                             pickedDate = null
                             timeDialogState.value = false
 
+
+
                         },
-                        enabled = pickedDate != null && pickedTime != null
+                        enabled = pickedDate != null && pickedTime != null && selectedDateTimeList.size < 3
                     ) {
                         Text(text = "Agregar cita")
                     }
@@ -250,8 +302,9 @@ fun SolicitudesScreen(
                 LazyColumn(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .weight(1f)
-                        .padding(top = 20.dp, bottom = 20.dp),
+                        .weight(1f)  // Permitir que la lista crezca y se ajuste dentro del diálogo
+                        .padding(top = 20.dp, bottom = 20.dp)
+                        .background(Color.LightGray),
 
                     ) {
                     items(selectedDateTimeList) { (date, time) ->
@@ -310,7 +363,24 @@ fun SolicitudesScreen(
                 horizontalAlignment = Alignment.CenterHorizontally) {
                 // Button with text "Enviar solicitud"
                 Button(
-                    onClick = { /* Handle send request */ },
+                    onClick = {
+
+                        for ((fecha, hora) in selectedDateTimeList) {
+                            val anio = fecha.year.toString()
+                            val mes = fecha.monthValue.toString()
+                            val dia = fecha.dayOfMonth.toString()
+                            val horaString = hora.toString() // Formato: HH:mm
+
+                            viewModel.insertSolicitud(anio = anio, mes = mes, dia = dia, hora = horaString,
+                                descripcion = textFieldValue, motivo = selectedOption)
+
+                        }
+
+                        selectedDateTimeList.clear()
+
+                    },
+                    enabled = selectedDateTimeList.size > 0 && selectedDateTimeList.size < 4 &&
+                            selectedOption != "" && textFieldValue != "",
                     modifier = Modifier.fillMaxWidth(),
                 ) {
                     Text(text = "Enviar solicitud", fontSize = 18.sp)

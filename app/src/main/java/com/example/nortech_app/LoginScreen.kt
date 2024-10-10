@@ -24,7 +24,7 @@ import kotlinx.coroutines.launch
 import viewmodel.UserViewModel
 
 @Composable
-fun LoginScreen(viewModel: UserViewModel, navController: NavController, opcion: MutableState<String>) {
+fun LoginScreen(viewModel: UserViewModel, navController: NavController, opcion: String) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
@@ -78,7 +78,7 @@ fun LoginScreen(viewModel: UserViewModel, navController: NavController, opcion: 
         Spacer(modifier = Modifier.height(24.dp))
 
         Button(
-            onClick = { viewModel.signIn(email, password, opcion) },
+            onClick = { viewModel.signIn(email, password) },
             modifier = Modifier
                 .fillMaxWidth()
         ) {
@@ -109,5 +109,4 @@ fun LoginScreen(viewModel: UserViewModel, navController: NavController, opcion: 
         )
     }
 }
-
 

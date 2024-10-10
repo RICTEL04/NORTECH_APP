@@ -20,6 +20,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -45,12 +46,17 @@ fun EstudiantesView(navController: NavHostController) {
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            text = "Estudiantes",
+                            text = "ESTUDIANTES",
                             fontWeight = FontWeight.Bold,
-                            fontSize = 35.sp
+                            fontSize = 28.sp, // Reduce ligeramente el tamaño
+                            color = Color(0xFF1E88E5) // Azul suave
                         )
                     }
-                })
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = Color(0xFFE3F2FD) // Fondo azul claro
+                )
+            )
         },
         bottomBar = {
             BottomBarAbogado(navController, 4)

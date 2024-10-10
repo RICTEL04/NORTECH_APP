@@ -23,6 +23,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -33,6 +34,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
+import com.example.nortech_app.Students.BottomNavigationBarEstudiante
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -46,12 +48,17 @@ fun NotificationsScreen(navController: NavHostController) {
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            text = "Notificaciones",
+                            text = "NOTIFICACIONES",
                             fontWeight = FontWeight.Bold,
-                            fontSize = 35.sp
+                            fontSize = 35.sp, // Reduce ligeramente el tamaño
+                            color = Color(0xFF1E88E5) // Azul suave
                         )
                     }
-                })
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = Color(0xFFE3F2FD) // Fondo azul claro
+                )
+            )
         },
         bottomBar = {
             BottomNavigationBar(navController, 3)
@@ -136,21 +143,20 @@ fun VerNotGeneral(navController: NavController){
         topBar = {
             TopAppBar(
                 title = {
-                    Text(text = "")
-                },
-                navigationIcon = {
-                    IconButton(onClick = {
-                        navController.navigate("Notification")
-                    }) {
-                        Icon(
-                            imageVector = Icons.Default.ArrowBack,
-                            contentDescription = "Regresar"
+                    Box(
+                        modifier = Modifier.fillMaxWidth(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "Perfil",
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 35.sp
                         )
                     }
-                }
-            )
-        }, bottomBar = {
-            BottomNavigationBar(navController, 3)
+                })
+        },
+        bottomBar = {
+            BottomNavigationBarEstudiante(navController, 0)
         }
     ) { paddingValues ->
         Column(

@@ -19,6 +19,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -29,11 +30,15 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.example.nortech_app.R
 import com.example.nortech_app.Visits.BottomNavigationBar
+import viewmodel.UserViewModel
 
 // PERFIL ESTUDIANTE -------------------
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ProfileEstudianteScreen(navController: NavHostController) {
+fun ProfileEstudianteScreen(viewModel: UserViewModel, navController: NavHostController) {
+    LaunchedEffect(Unit) {
+        viewModel.getName()
+    }
     Scaffold(
         topBar = {
             TopAppBar(
@@ -75,7 +80,7 @@ fun ProfileEstudianteScreen(navController: NavHostController) {
                     )
                     Spacer(modifier = Modifier.width(16.dp))
                     Column {
-                        Text(text = "Van Hohenheim", fontWeight = FontWeight.Bold, fontSize = 25.sp)
+                        Text(text = viewModel.userName.value, fontWeight = FontWeight.Bold, fontSize = 25.sp)
                         Text(text = "Estudiante", fontSize = 20.sp, color = Color.Gray)
                     }
                 }

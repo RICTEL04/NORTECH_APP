@@ -1,44 +1,36 @@
 package com.example.nortech_app.Abogados
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.Divider
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material3.Button
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.example.nortech_app.R
+import viewmodel.UserViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun VerCasoView(navController: NavController){
+fun VerCasoView(navController: NavController, viewModel: UserViewModel) {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = {
-                    Text(text = "")
-                },
+                title = { Text(text = "Detalles del Caso", fontWeight = FontWeight.Bold, fontSize = 18.sp) },
                 navigationIcon = {
-                    IconButton(onClick = {
-                        navController.navigate("CasosAbogado")
-                    }) {
+                    IconButton(onClick = { navController.navigate("CasosAbogado") }) {
                         Icon(
                             imageVector = Icons.Default.ArrowBack,
                             contentDescription = "Regresar"
@@ -46,60 +38,130 @@ fun VerCasoView(navController: NavController){
                     }
                 }
             )
-                 },
+        },
         bottomBar = {
             BottomBarAbogado(navController, 2)
         }
     ) { paddingValues ->
         Surface(
             modifier = Modifier
-                .fillMaxSize()
                 .padding(paddingValues)
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
         ) {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(16.dp),
-                verticalArrangement = Arrangement.Top,
                 horizontalAlignment = Alignment.CenterHorizontally
-            ){
-                Spacer(modifier = Modifier.height(25.dp))
+            ) {
+                Text(
+                    text = viewModel.ALIAScaso.value,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 30.sp,
+                    color = Color(0xFF1E88E5), // Color azul para resaltar el nombre
+                    modifier = Modifier.padding(bottom = 16.dp)
+                )
 
-                Text(text = "Caso", fontSize = 36.sp, fontWeight = FontWeight.Bold)
+                // Sección de información del caso
+                SectionTitle("INFORMACIÓN DE CASO")
+                Divider(color = Color.Gray, thickness = 2.dp, modifier = Modifier.padding(vertical = 3.dp)) // Línea divisora
+                InfoRow2(label = "NUC", value = viewModel.nucCaso.value)
+                Divider(color = Color.Gray, thickness = 1.dp, modifier = Modifier.padding(vertical = 3.dp)) // Línea divisora
+                InfoRow2(label = "Nombre ${viewModel.tipocaso.value}", value = viewModel.namecaso.value)
+                Divider(color = Color.Gray, thickness = 1.dp, modifier = Modifier.padding(vertical = 3.dp)) // Línea divisora
+                InfoRow2(label = "Descripción del caso", value = "")
+                SectionDes(viewModel.descCaso.value)
+                Divider(color = Color.Gray, thickness = 1.dp, modifier = Modifier.padding(vertical = 3.dp)) // Línea divisora
+                InfoRow2(label = "Carpeta Judicial", value = viewModel.caroJudicialCaso.value)
+                Divider(color = Color.Gray, thickness = 1.dp, modifier = Modifier.padding(vertical = 3.dp)) // Línea divisora
+                InfoRow2(label = "Carpeta Investigación", value = viewModel.carpInvestCaso.value)
+                Divider(color = Color.Gray, thickness = 1.dp, modifier = Modifier.padding(vertical = 3.dp)) // Línea divisora
+                InfoRow2(label = "Acceso FV", value = viewModel.accFVCaso.value)
+                Divider(color = Color.Gray, thickness = 1.dp, modifier = Modifier.padding(vertical = 3.dp)) // Línea divisora
+                InfoRow2(label = "Password FV", value = viewModel.passFVCaso.value)
+                Divider(color = Color.Gray, thickness = 1.dp, modifier = Modifier.padding(vertical = 3.dp)) // Línea divisora
+                InfoRow2(label = "Fiscal Titular", value = viewModel.fiscalTituCaso.value)
+                Divider(color = Color.Gray, thickness = 1.dp, modifier = Modifier.padding(vertical = 3.dp)) // Línea divisora
+                InfoRow2(label = "Unidad Investigación (UI)", value = viewModel.unidadInvestCaso.value)
+                Divider(color = Color.Gray, thickness = 1.dp, modifier = Modifier.padding(vertical = 3.dp)) // Línea divisora
+                InfoRow2(label = "Dirección UI", value = viewModel.dirUIcaso.value)
+                Divider(color = Color.Gray, thickness = 1.dp, modifier = Modifier.padding(vertical = 3.dp)) // Línea divisora
+                InfoRow2(label = "Carpeta Drive", value = viewModel.carpDriveCaso.value)
+                Divider(color = Color.Gray, thickness = 2.dp, modifier = Modifier.padding(vertical = 3.dp)) // Línea divisora
 
-                Spacer(modifier = Modifier.height(75.dp))
-
-                Text(text = "Fecha: dd/mm/yyyy", fontSize = 16.sp, color = Color.Gray)
-
-                Spacer(modifier = Modifier.height(4.dp))
-
-                Text(text = "Caso 1111", fontSize = 20.sp, fontWeight = FontWeight.Bold)
-
-                Spacer(modifier = Modifier.height(10.dp))
-
-                Text(text = "Delito Contra el Honor",
-                    fontSize = 16.sp, color = Color.Gray, textAlign = TextAlign.Center)
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(text = "Victima",
-                    fontSize = 16.sp, color = Color.Gray, textAlign = TextAlign.Center)
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(text = "Descripcion:",
-                    fontSize = 16.sp, color = Color.Gray, textAlign = TextAlign.Center)
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(text = "Nombre: Juan Perez",
-                    fontSize = 16.sp, color = Color.Gray, textAlign = TextAlign.Center)
-
-                Spacer(modifier = Modifier.height(50.dp))
-                Text(text = "Link a folder de google",
-                    fontSize = 16.sp, color = Color.Gray, textAlign = TextAlign.Center)
-                Spacer(modifier = Modifier.height(4.dp))
-                Button(
-                    onClick = { /* Handle send request */ }
+                Spacer(modifier = Modifier.height(32.dp)) // Espaciado final
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 8.dp, vertical = 8.dp), // Ajuste del margen superior e inferior
+                    horizontalArrangement = Arrangement.Center, // Centra el contenido horizontalmente
+                    verticalAlignment = Alignment.CenterVertically // Alineación vertical central
                 ) {
-                    Text(text = "Folder", fontSize = 18.sp)
-                }
+                    Text(
+                        text = "Archivos relacionados",
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = Color(0xFF616161)
+                    )
 
+                    Spacer(modifier = Modifier.weight(10f)) // Empuja el botón hacia el borde derecho
+
+                    Button(
+                        onClick = {  },
+                        colors = ButtonDefaults.buttonColors(Color(0xFF1E88E5)),
+                        modifier = Modifier.height(35.dp) // Ajusta la altura del botón para que no sea demasiado grande
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Add,
+                            contentDescription = "Agregar Noticia",
+                            tint = Color.White
+                        )
+                        Text(text = "New File", color = Color.White)
+                    }
+                }
             }
         }
     }
+}
+
+@Composable
+fun InfoRow2(label: String, value: String) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp),
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Text(text = label, fontSize = 16.sp, fontWeight = FontWeight.Medium)
+        if (value.isNotEmpty()) {
+            Text(text = value, fontSize = 16.sp, fontWeight = FontWeight.Light, textAlign = TextAlign.End)
+        }
+    }
+}
+
+@Composable
+fun SectionTitle(title: String) {
+    Text(
+        text = title,
+        fontSize = 18.sp,
+        fontWeight = FontWeight.SemiBold,
+        color = Color(0xFF616161),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp),
+        textAlign = TextAlign.Start
+    )
+}
+@Composable
+fun SectionDes(title: String) {
+    Text(
+        text = title,
+        fontSize = 16.sp,
+        color = Color(0xFF616161),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp),
+        textAlign = TextAlign.Start
+    )
 }

@@ -55,20 +55,16 @@ android {
 
 dependencies {
     implementation(libs.hilt.android)
-    implementation(libs.androidx.biometric.ktx)
     implementation(libs.androidx.appcompat)
+    implementation(libs.generativeai)
     kapt(libs.hilt.android.compiler)
-
-    implementation (libs.androidx.material.icons.extended)
-
-    implementation (libs.androidx.biometric.v120)
 
     implementation(platform("io.github.jan-tennert.supabase:bom:2.6.0"))
     implementation("io.github.jan-tennert.supabase:postgrest-kt")
     implementation("io.github.jan-tennert.supabase:gotrue-kt")
     implementation("io.github.jan-tennert.supabase:realtime-kt")
     implementation("io.ktor:ktor-client-okhttp:2.3.4")
-
+    implementation("io.github.jan-tennert.supabase:storage-kt:VERSION")
 
     implementation (libs.androidx.runtime.saveable)
     implementation (libs.androidx.navigation.compose)
@@ -89,6 +85,12 @@ dependencies {
     debugImplementation(libs.androidx.ui.test.manifest)
     implementation (libs.datetime)
     coreLibraryDesugaring(libs.desugar.jdk.libs)
+    implementation(libs.coil.compose)
+    implementation (libs.accompanist.pager) // Versión actual en el momento de escribir esto
+    implementation (libs.accompanist.pager.indicators) // Para los indicadores de página
+    implementation (libs.material3)
+    implementation("com.onesignal:OneSignal:[5.0.0, 5.99.99]")
+
 
 }
 
