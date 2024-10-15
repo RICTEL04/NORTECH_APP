@@ -58,7 +58,7 @@ fun BottomNavigationBarEstudiante(navController: NavController, indexes: Int) {
             )
             BottomNavigationItem(
                 icon = R.drawable.chat,
-                label = "Notificaciones",
+                label = "Solicitudes",
                 selected = indexes == 3,
                 hasNotificationDot = false,
                 onClick = { navController.navigate("NotificacionEstudiantes") }

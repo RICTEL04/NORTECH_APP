@@ -22,6 +22,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -35,6 +36,26 @@ import androidx.navigation.NavHostController
 @Composable
 fun LawCategoriesGrid(navController: NavHostController) {
     Scaffold(
+        topBar = {
+            TopAppBar(
+                title = {
+                    Box(
+                        modifier = Modifier.fillMaxWidth(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "TUS DERECHOS",
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 35.sp, // Reduce ligeramente el tamaño
+                            color = Color(0xFF1E88E5) // Azul suave
+                        )
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = Color(0xFFE3F2FD) // Fondo azul claro
+                )
+            )
+        },
         bottomBar = {
             BottomNavigationBar(navController, 2)
         }
@@ -46,44 +67,32 @@ fun LawCategoriesGrid(navController: NavHostController) {
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text(
-                text = "Conoce tus derechos",
-                fontSize = 36.sp,
-                fontWeight = FontWeight.Bold
-            )
+            Row(modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
+                LawCategoryCard("Leyes de \nRobo",navController, "LeyesRobo")
+                LawCategoryCard("Leyes \nAsalto",navController, "LeyesAsalto")
+            }
+            Spacer(modifier = Modifier.height(8.dp))
+            Row(modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
+                LawCategoryCard("Leyes de \nAmenazas",navController, "LeyesAmenazas")
+                LawCategoryCard("Leyes de \nTrabajo",navController, "VerDerechos")
+            }
+            Spacer(modifier = Modifier.height(8.dp))
 
-            Spacer(modifier = Modifier.height(50.dp))
-            Row(modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly
-            ) {
-                LawCategoryCard("Leyes de \ntrabajo",navController)
-                LawCategoryCard("Leyes \nCiviles",navController)
-            }
-            Spacer(modifier = Modifier.height(8.dp))
-            Row(modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly
-            ) {
-                LawCategoryCard("Leyes de \nCrimen",navController)
-                LawCategoryCard("Leyes de \nFamilia",navController)
-            }
-            Spacer(modifier = Modifier.height(8.dp))
-            Row(modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly
-            ) {
-                LawCategoryCard("Leyes de \ntransporte",navController)
-                LawCategoryCard("Leyes de \npropiedad",navController)
-            }
         }
     }
 }
 
 @Composable
-fun LawCategoryCard(title: String,navController: NavHostController) {
+fun LawCategoryCard(title: String,navController: NavHostController, rout: String) {
     Card(
         modifier = Modifier
             .size(150.dp) // Tamaño fijo para asegurar que todas las tarjetas sean iguales
             .padding(8.dp)
-            .clickable { navController.navigate("VerDerechos") },
+            .clickable { navController.navigate(rout) },
         shape = RoundedCornerShape(8.dp),
         colors = CardDefaults.cardColors(containerColor = Color(0xFFE0E0E0)),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)

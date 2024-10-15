@@ -64,7 +64,7 @@ fun BottomBarAbogado(navController: NavController, indexes: Int) {
                     navController.navigate("SolicitudesAbogado") }
             )
             BottomNavigationItem(
-                icon = R.drawable.perfil,
+                icon = R.drawable.student,
                 label = "Estudiantes",
                 selected = indexes == 4,
                 onClick = { navController.navigate("EstudiantesAbogado") }
