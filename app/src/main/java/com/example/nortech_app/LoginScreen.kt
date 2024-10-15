@@ -100,13 +100,6 @@ fun LoginScreen(viewModel: UserViewModel, navController: NavController, opcion: 
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        Image(
-            painter = painterResource(id = R.drawable.fingerprint),
-            contentDescription = "Fingerprint",
-            modifier = Modifier
-                .size(80.dp)
-                .padding(16.dp)
-        )
     }
 }
 

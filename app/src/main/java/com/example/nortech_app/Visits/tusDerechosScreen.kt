@@ -70,34 +70,29 @@ fun LawCategoriesGrid(navController: NavHostController) {
             Row(modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
-                LawCategoryCard("Leyes de \ntrabajo",navController)
-                LawCategoryCard("Leyes \nCiviles",navController)
+                LawCategoryCard("Leyes de \nRobo",navController, "LeyesRobo")
+                LawCategoryCard("Leyes \nAsalto",navController, "LeyesAsalto")
             }
             Spacer(modifier = Modifier.height(8.dp))
             Row(modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
-                LawCategoryCard("Leyes de \nCrimen",navController)
-                LawCategoryCard("Leyes de \nFamilia",navController)
+                LawCategoryCard("Leyes de \nAmenazas",navController, "LeyesAmenazas")
+                LawCategoryCard("Leyes de \nTrabajo",navController, "VerDerechos")
             }
             Spacer(modifier = Modifier.height(8.dp))
-            Row(modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly
-            ) {
-                LawCategoryCard("Leyes de \ntransporte",navController)
-                LawCategoryCard("Leyes de \npropiedad",navController)
-            }
+
         }
     }
 }
 
 @Composable
-fun LawCategoryCard(title: String,navController: NavHostController) {
+fun LawCategoryCard(title: String,navController: NavHostController, rout: String) {
     Card(
         modifier = Modifier
             .size(150.dp) // Tamaño fijo para asegurar que todas las tarjetas sean iguales
             .padding(8.dp)
-            .clickable { navController.navigate("VerDerechos") },
+            .clickable { navController.navigate(rout) },
         shape = RoundedCornerShape(8.dp),
         colors = CardDefaults.cardColors(containerColor = Color(0xFFE0E0E0)),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)

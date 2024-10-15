@@ -1,6 +1,7 @@
 package com.example.nortech_app.Abogados
 
 import android.content.Intent
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -10,25 +11,41 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.Divider
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -44,10 +61,26 @@ import viewmodel.UserViewModel
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CasosView(navController: NavHostController, viewModel: UserViewModel) {
+    val scrollState = rememberScrollState()
     val allCasos by viewModel.casos.collectAsState()
+    val searchNUC = remember { mutableStateOf("") }
+    val searchAlias = remember { mutableStateOf("") }
+    val searchTipo = remember { mutableStateOf("") }
+    val searchActivo = remember { mutableStateOf(true) }
+
+    var isFilterVisible by remember { mutableStateOf(false) }
+
     LaunchedEffect(Unit) {
         viewModel.getAllCasos()
     }
+
+    val filteredCasos = allCasos.filter { caso ->
+        (searchNUC.value.isEmpty() || caso.nuc.contains(searchNUC.value, ignoreCase = true)) &&
+                (searchAlias.value.isEmpty() || caso.ALIAS.contains(searchAlias.value, ignoreCase = true)) &&
+                (searchTipo.value.isEmpty() || caso.tipo.equals(searchTipo.value, ignoreCase = true)) &&
+                (caso.activo == searchActivo.value)
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -74,8 +107,11 @@ fun CasosView(navController: NavHostController, viewModel: UserViewModel) {
         },
         floatingActionButton = {
             if (viewModel.rol.value == "2") {
-                FloatingActionButton(onClick = { navController.navigate("CrearCaso") }) {
-                    Icon(Icons.Default.Add, contentDescription = "NUEVO CASO")
+                FloatingActionButton(
+                    onClick = { navController.navigate("CrearCaso") },
+                    containerColor = Color(0xFF1976D2)
+                ) {
+                    Icon(Icons.Default.Add, contentDescription = "Nuevo Caso", tint = Color.White)
                 }
             }
         },
@@ -85,15 +121,112 @@ fun CasosView(navController: NavHostController, viewModel: UserViewModel) {
                 .fillMaxSize()
                 .padding(paddingValues)
                 .padding(16.dp)
+                .verticalScroll(scrollState)
         ) {
             Column(
                 verticalArrangement = Arrangement.spacedBy(16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                for (rowIndex in allCasos.indices) {
-                    val caso1 = allCasos[rowIndex]
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { isFilterVisible = !isFilterVisible },
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        text = "Filtros de búsqueda",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 18.sp
+                    )
+                    Icon(
+                        imageVector = if (isFilterVisible) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+                        contentDescription = if (isFilterVisible) "Ocultar Filtros" else "Mostrar Filtros"
+                    )
+                }
+                Divider(
+                    color = Color.Gray,
+                    thickness = 2.dp,
+                    modifier = Modifier.padding(vertical = 3.dp)
+                )
+
+                // Filtros con visibilidad animada
+                AnimatedVisibility(visible = isFilterVisible) {
+                    Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                        // Campos de búsqueda
+                        OutlinedTextField(
+                            value = searchNUC.value,
+                            onValueChange = { searchNUC.value = it },
+                            label = { Text("Buscar por NUC") },
+                            modifier = Modifier.fillMaxWidth(),
+                            leadingIcon = {
+                                Icon(imageVector = Icons.Default.Search, contentDescription = null)
+                            }
+                        )
+                        OutlinedTextField(
+                            value = searchAlias.value,
+                            onValueChange = { searchAlias.value = it },
+                            label = { Text("Buscar por Alias") },
+                            modifier = Modifier.fillMaxWidth(),
+                            leadingIcon = {
+                                Icon(imageVector = Icons.Default.Search, contentDescription = null)
+                            }
+                        )
+
+                        var expanded by remember { mutableStateOf(false) }
+                        val options = listOf("Investigado", "Víctima")
+
+                        ExposedDropdownMenuBox(
+                            expanded = expanded,
+                            onExpandedChange = { expanded = !expanded }
+                        ) {
+                            OutlinedTextField(
+                                value = searchTipo.value,
+                                onValueChange = {  },
+                                label = { Text("Buscar por Tipo") },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .menuAnchor(),
+                                trailingIcon = {
+                                    Icon(
+                                        imageVector = if (expanded) Icons.Default.KeyboardArrowUp else Icons.Default.ArrowDropDown,
+                                        contentDescription = null
+                                    )
+                                }
+                            )
+                            DropdownMenu(
+                                expanded = expanded,
+                                onDismissRequest = { expanded = false }
+                            ) {
+                                options.forEach { option ->
+                                    DropdownMenuItem(
+                                        text = { Text(option) },
+                                        onClick = {
+                                            searchTipo.value = option
+                                            expanded = false
+                                        }
+                                    )
+                                }
+                            }
+                        }
+
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(text = "Mostrar casos activos", fontWeight = FontWeight.Medium)
+                            Checkbox(
+                                checked = searchActivo.value,
+                                onCheckedChange = { searchActivo.value = it }
+                            )
+                        }
+                    }
+                }
+
+                // Mostrar casos filtrados
+                for (rowIndex in filteredCasos.indices) {
+                    val caso = filteredCasos[rowIndex]
                     CasosItem(
-                        casos = caso1,
+                        casos = caso,
                         viewModel = viewModel,
                         navController = navController
                     )
@@ -102,6 +235,7 @@ fun CasosView(navController: NavHostController, viewModel: UserViewModel) {
         }
     }
 }
+
 
     @Composable
     fun CasosItem(
@@ -168,6 +302,7 @@ fun CasosView(navController: NavHostController, viewModel: UserViewModel) {
                         viewModel.dirUIcaso.value = casos.dir_UI
                         viewModel.ALIAScaso.value = casos.ALIAS
                         viewModel.namecaso.value = casos.nombre
+                        viewModel.estadocaso.value = casos.activo
 
                         navController.navigate("VerCasoAbogado")
                     },

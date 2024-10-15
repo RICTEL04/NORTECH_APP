@@ -74,7 +74,10 @@ fun MainScreen(viewModel: UserViewModel, navController: NavController) {
         noticias.forEach {
             Log.d("NoticiasURL", "URL de imagen: ${it.Image_URL}")
         }
+        viewModel.getCitasUsuario()
     }
+    val Cita = viewModel.citasUsuario.value?.firstOrNull()
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -86,7 +89,7 @@ fun MainScreen(viewModel: UserViewModel, navController: NavController) {
                         Text(
                             text = "INICIO",
                             fontWeight = FontWeight.Bold,
-                            fontSize = 35.sp, // Reduce ligeramente el tamaño
+                            fontSize = 28.sp, // Reduce ligeramente el tamaño
                             color = Color(0xFF1E88E5) // Azul suave
                         )
                     }
@@ -162,13 +165,32 @@ fun MainScreen(viewModel: UserViewModel, navController: NavController) {
                             color = Color(0xFF1E88E5) // Azul
                         )
                         Spacer(modifier = Modifier.height(15.dp))
-                        Row(
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Text(text = "Día: 28-09-2004", fontSize = 16.sp, color = Color.Gray)
-                            Text(text = "Hora: 15:00", fontSize = 16.sp, color = Color.Gray)
+                        if(Cita==null) {
+                            Text(
+                                text = "No hay citas realizadas",
+                                fontSize = 18.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.Gray // Azul
+                            )
                         }
+                            Row(
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                if(Cita!=null) {
+                                    Text(
+                                        text = "Fecha: ${Cita?.dia} / ${Cita?.mes} / ${Cita?.anio}",
+                                        fontSize = 16.sp,
+                                        color = Color.Gray
+                                    )
+                                    Text(
+                                        text = "Hora: ${Cita?.hora}",
+                                        fontSize = 16.sp,
+                                        color = Color.Gray
+                                    )
+                                }
+                            }
+
                     }
                 }
             }

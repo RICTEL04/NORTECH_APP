@@ -34,6 +34,7 @@ import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -69,10 +70,16 @@ fun CasoForm(viewModel: UserViewModel, navController: NavController) {
     var name by remember { mutableStateOf("") }
     var tipo by remember { mutableStateOf("Tipo de caso") }
 
+    val isFormChanged by remember {
+        derivedStateOf {
+            alias.isNotEmpty() && name.isNotEmpty() && tipo != "Tipo de caso" && nuc.isNotEmpty()
+        }
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(text = "Enviar noticia", color = Color.Black, fontSize = 20.sp) },
+                title = { Text(text = "Crear caso", color = Color.Black, fontSize = 20.sp) },
                 navigationIcon = {
                     IconButton(onClick = {
                         navController.navigate("CasosAbogado")
@@ -103,7 +110,7 @@ fun CasoForm(viewModel: UserViewModel, navController: NavController) {
             TextField(
                 value = alias,
                 onValueChange = { alias = it },
-                label = { Text("ALIAS del caso") },
+                label = { Text("ALIAS del caso*") },
                 modifier = Modifier.fillMaxWidth(),
                 colors = TextFieldDefaults.colors(
                     focusedIndicatorColor = Color(0xFF007BFF),
@@ -139,7 +146,7 @@ fun CasoForm(viewModel: UserViewModel, navController: NavController) {
                         nuc = input
                     }
                 },
-                label = { Text("NUC") },
+                label = { Text("NUC*") },
                 modifier = Modifier.fillMaxWidth(),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),  // Mostrar teclado numérico
                 colors = TextFieldDefaults.colors(
@@ -148,11 +155,13 @@ fun CasoForm(viewModel: UserViewModel, navController: NavController) {
                 )
             )
 
+            Spacer(modifier = Modifier.height(16.dp))
+
             // Campo de título
             TextField(
                 value = name,
                 onValueChange = { name = it },
-                label = { Text("Password FV") },
+                label = { Text("nombre cliente*") },
                 modifier = Modifier.fillMaxWidth(),
                 colors = TextFieldDefaults.colors(
                     focusedIndicatorColor = Color(0xFF007BFF),
@@ -170,7 +179,7 @@ fun CasoForm(viewModel: UserViewModel, navController: NavController) {
                 TextField(
                     value = tipo,
                     onValueChange = { /* No permite cambios directos */ },
-                    label = { Text("Tipo") },
+                    label = { Text("Tipo*") },
                     readOnly = true,
                     modifier = Modifier
                         .fillMaxWidth()
@@ -345,13 +354,7 @@ fun CasoForm(viewModel: UserViewModel, navController: NavController) {
                             carpetaDrive,
                             alias,
                             name)
-                    if (viewModel.uploadSuccessaddCaso.value) {
-                        Toast.makeText(context, "Caso creado", Toast.LENGTH_SHORT).show()
-                        navController.navigate("CasosAbogado")
-                    }
-                    else{
-                        Toast.makeText(context, "Fallo al crear caso", Toast.LENGTH_SHORT).show()
-                    }
+                    navController.navigate("CasosAbogado")
                           },
                 modifier = Modifier
                     .fillMaxWidth()
@@ -360,7 +363,8 @@ fun CasoForm(viewModel: UserViewModel, navController: NavController) {
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color(0xFF5A6C8E),
                     contentColor = Color.White
-                )
+                ),
+                enabled = isFormChanged
             ) {
                 Text(text = "Enviar noticia", fontSize = 16.sp)
             }

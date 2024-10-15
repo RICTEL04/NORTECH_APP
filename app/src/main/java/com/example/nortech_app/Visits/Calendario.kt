@@ -2,6 +2,7 @@ package com.example.nortech_app.Visits
 
 import android.annotation.SuppressLint
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -55,125 +56,86 @@ import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 import viewmodel.UserViewModel
 
-
-// Simulación de base de datos de citas planeadas, estas son las citas que ya estan registradas en el sistema
-
-val scheduledDates =  mapOf(
-    // Día 1: 24 de septiembre de 2024 con 3 citas planeadas
-    LocalDate.of(2024, 9, 27) to listOf(
-        LocalTime.of(8, 30),
-        LocalTime.of(10, 0),
-        LocalTime.of(15, 30)
-    ),
-
-    // Día 2: 25 de septiembre de 2024 con 2 citas planeadas
-    LocalDate.of(2024, 9, 30) to listOf(
-        LocalTime.of(9, 0),
-        LocalTime.of(13, 30)
-    ),
-
-    // Día 3: 26 de septiembre de 2024 con 4 citas planeadas
-    LocalDate.of(2024, 10, 1) to listOf(
-        LocalTime.of(8, 0),
-        LocalTime.of(11, 30),
-        LocalTime.of(14, 0),
-        LocalTime.of(15, 30)
-    ),
-
-    // Día 6: 27 de septiembre de 2024 con 4 citas planeadas
-    LocalDate.of(2024, 10, 2) to listOf(
-        LocalTime.of(8, 0),
-        LocalTime.of(9, 0),
-        LocalTime.of(9, 30),
-        LocalTime.of(11, 0),
-        LocalTime.of(12, 30),
-        LocalTime.of(14, 0),
-        LocalTime.of(15, 30),
-
-        ),
-
-    // Día 6: 30 de septiembre de 2024 con 4 citas planeadas
-    LocalDate.of(2024, 10, 4) to listOf(
-        LocalTime.of(8, 0),
-        LocalTime.of(9, 0),
-        LocalTime.of(10, 0),
-        LocalTime.of(11, 0),
-        LocalTime.of(12, 0),
-        LocalTime.of(13, 0),
-        LocalTime.of(14, 0),
-        LocalTime.of(15, 0),
-        LocalTime.of(16, 0),
-
-        )
-)
-
-
-// Ejemplo de uso con intervalo de 1:30 horas (90 minutos)
-val intervalMinutes = 90L
-// Map con todos los horarios ocupados
-val agendaAvailabilityMap = generateAgendaAvailabilityMap(scheduledDates, intervalMinutes)
-
 // Función que genera la agenda con intervalos ocupados personalizados
 fun generateAgendaAvailabilityMap(
     scheduledDates: Map<LocalDate, List<LocalTime>>,
     intervalMinutes: Long
 ): MutableMap<LocalDate, MutableList<LocalTime>> {
     val agendaAvailabilityMap = mutableMapOf<LocalDate, MutableList<LocalTime>>()
+    val currentTime = LocalTime.now()
+    val currentDate = LocalDate.now()
+    val occupiedTimes = mutableListOf<LocalTime>()
 
-    for ((date, times) in scheduledDates) {
-        val occupiedTimes = mutableListOf<LocalTime>()
-
-        for (time in times) {
-            // Añadir la hora de inicio de la cita
+    // Siempre agregar horas ocupadas para el día actual
+    for (hour in 10..16) { // Limitar de 10:00 a 17:00
+        val time = LocalTime.of(hour, 0)
+        if (time.isBefore(currentTime)) {
             occupiedTimes.add(time)
-
-            // Bloquear los intervalos antes de la hora de la cita
-            var previousTime = time
-            var remainingBefore = intervalMinutes
-            remainingBefore -= 30
-            while (remainingBefore > 0) {
-                previousTime = previousTime.minusMinutes(30)
-                remainingBefore -= 30
-                // Solo bloqueamos si la hora es válida (no antes de las 8:00 AM)
-                if (previousTime.isAfter(LocalTime.of(7, 30))) {
-                    occupiedTimes.add(previousTime)
-                }
-            }
-
-            // Añadir los intervalos de tiempo ocupados después de la cita
-            var nextTime = time
-            var remainingAfter = intervalMinutes
-
-            // Mientras no se acabe el intervalo, bloqueamos los horarios posteriores
-            remainingAfter -= 30
-            while (remainingAfter > 0) {
-                nextTime = nextTime.plusMinutes(30)
-                remainingAfter -= 30
-                // Limitar las citas hasta las 5:00 PM (17:00)
-                if (nextTime.hour < 17) {
-                    occupiedTimes.add(nextTime)
-                }
-            }
         }
-
-        // Guardar la lista de horarios ocupados en el mapa de disponibilidad para ese día
-        agendaAvailabilityMap[date] = occupiedTimes
     }
+    agendaAvailabilityMap[currentDate] = occupiedTimes // Guardar horas ocupadas en currentDate
+    Log.d("CalendarioGenerateAvailabilityMap", "Con scheduled en $scheduledDates")
+    // Verificar si hay citas programadas
+    if (scheduledDates.isNullOrEmpty()) {
+        Log.d("CalendarioGenerateAvailabilityMap", "Sin citas: $occupiedTimes")
+    }else{
+        for ((date, times) in scheduledDates) {
+            // Lista temporal para almacenar los horarios ocupados para el día actual
+            val dailyOccupiedTimes = agendaAvailabilityMap.getOrPut(date) { mutableListOf() }
 
+            for (time in times) {
+                // Añadir la hora de inicio de la cita si no está ya en la lista de horarios ocupados
+                if (!dailyOccupiedTimes.contains(time)) {
+                    dailyOccupiedTimes.add(time)
+                }
+
+                // Bloquear los intervalos 60 minutos antes de la hora de la cita
+                var previousTime = time
+                var remainingBefore = intervalMinutes
+                remainingBefore -= 60
+                while (remainingBefore > 0) {
+                    previousTime = previousTime.minusMinutes(60)
+                    remainingBefore -= 60
+                    // Solo bloquear si la hora es válida (no antes de las 10:00 AM)
+                    if (previousTime.isAfter(LocalTime.of(10, 0)) && !dailyOccupiedTimes.contains(previousTime)) {
+                        dailyOccupiedTimes.add(previousTime)
+                    }
+                }
+
+                // Bloquear los intervalos 60 minutos después de la hora de la cita
+                var nextTime = time
+                var remainingAfter = intervalMinutes
+                remainingAfter -= 60
+                while (remainingAfter > 0) {
+                    nextTime = nextTime.plusMinutes(60)
+                    remainingAfter -= 60
+                    // Limitar las citas hasta las 5:00 PM (17:00)
+                    if (nextTime.hour < 17 && !dailyOccupiedTimes.contains(nextTime)) {
+                        dailyOccupiedTimes.add(nextTime)
+                    }
+                }
+            }
+
+            // Guardar la lista de horarios ocupados actualizada para ese día
+            agendaAvailabilityMap[date] = dailyOccupiedTimes
+        }
+    }
+    Log.d("CalendarioGenerateAvailabilityMap", "AgendaAvail: $agendaAvailabilityMap")
     return agendaAvailabilityMap
 }
+
 
 
 
 fun getAvailableTimesForDate(selectedDate: LocalDate, agendaMap: MutableMap<LocalDate, MutableList<LocalTime>>): List<LocalTime> {
     // Generamos los horarios de trabajo con intervalos de 30 minutos
     val workingHours = mutableListOf<LocalTime>()
-    var currentTime = LocalTime.of(8, 0)  // Horario de inicio: 8:00 AM
-    val endTime = LocalTime.of(16, 30)    // Última cita: 16:30 PM
+    var currentTime = LocalTime.of(10, 0)  // Horario de inicio: 8:00 AM
+    val endTime = LocalTime.of(17, 0)    // Última cita: 16:30 PM
 
     while (currentTime.isBefore(endTime)) {
         workingHours.add(currentTime)
-        currentTime = currentTime.plusMinutes(30)  // Avanzamos en intervalos de 30 minutos
+        currentTime = currentTime.plusMinutes(60)  // Avanzamos en intervalos de 30 minutos
     }
 
     // Obtenemos las horas reservadas para la fecha seleccionada
@@ -224,257 +186,6 @@ fun removeAvailability(agendaAvailabilityMap: MutableMap<LocalDate, MutableList<
         }
     } else {
         println("La fecha $date no existe en el mapa")
-    }
-}
-
-
-fun printAgendaAvailability() {
-    agendaAvailabilityMap.forEach { (date, times) ->
-        println("Date: $date, Available times: ${times.joinToString(", ")}")
-    }
-}
-
-/*
-val agendaFullMap = mapOf(
-    //LocalDate.of(2024, 9, 24) to true,
-    //LocalDate.of(2024, 9, 28) to true,
-    //LocalDate.of(2024, 9, 29) to true
-)
-
-
- */
-
-
-@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
-@Composable
-fun DateAndTimePicker(
-    agendaAvailabilityMap: MutableMap<LocalDate, MutableList<LocalTime>>
-) {
-    var pickedDate by remember { mutableStateOf<LocalDate?>(null) }
-    var pickedTime by remember { mutableStateOf<LocalTime?>(null) }
-    val selectedDateTimeList = remember { mutableStateListOf<Pair<LocalDate, LocalTime>>() }
-    val dateDialogState = rememberMaterialDialogState()
-    val timeDialogState = remember { mutableStateOf(false) }
-    var isDateValid by remember { mutableStateOf(false) }
-
-    val formattedDate by remember {
-        derivedStateOf {
-            pickedDate?.let {
-                DateTimeFormatter.ofPattern("MMM dd yyyy").format(it)
-            } ?: "No hay dia seleccionado"
-        }
-    }
-
-    val formattedTime by remember {
-        derivedStateOf {
-            pickedTime?.let {
-                DateTimeFormatter.ofPattern("hh:mm").format(it)
-            } ?: "No hay hora seleccionada"
-        }
-    }
-
-
-    Scaffold(
-        modifier = Modifier
-            .fillMaxSize()
-    ) {
-
-        Text(
-            text = "Calendario",
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 64.dp),
-            textAlign = TextAlign.Center,
-            fontSize = 30.sp
-
-        )
-
-        Spacer(modifier = Modifier.height(32.dp))
-
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(bottom = 80.dp, top = 128.dp), // Adjust this value if needed
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-
-        ) {
-            Spacer(modifier = Modifier.height(32.dp))
-            Button(onClick = {
-                dateDialogState.show()
-            }) {
-                Text(text = "Seleccionar fecha")
-            }
-
-            Text(text = formattedDate)
-
-            Button(
-                onClick = {
-                    timeDialogState.value = true
-                },
-                enabled = pickedDate != null
-            ) {
-                Text(text = "Seleccionar tiempo")
-            }
-
-            Text(text = formattedTime)
-
-            Button(
-                onClick = {
-                    pickedDate?.let { it1 ->
-                        pickedTime?.let { it2 ->
-                            addAvailability(agendaAvailabilityMap,
-                                it1, it2
-                            )
-                        }
-                    }
-                    selectedDateTimeList.add(Pair(pickedDate!!, pickedTime!!))
-                    pickedTime = null
-                    pickedDate = null
-                    timeDialogState.value = false
-
-                },
-                enabled = pickedDate != null && pickedTime != null
-            ) {
-                Text(text = "Agregar cita")
-            }
-
-            if (selectedDateTimeList.isEmpty()) {
-
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                    ,
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Text(
-                        modifier = Modifier
-                            .padding(top = 32.dp, bottom = 64.dp),
-                        text = "No hay \n citas elegidas",
-                        textAlign = TextAlign.Center,
-                        fontSize = 30.sp
-                    )
-                }
-
-
-            } else {
-
-                LazyColumn(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(top = 32.dp, bottom = 64.dp)
-                ) {
-                    items(selectedDateTimeList) { (date, time) ->
-                        Card(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .padding(vertical = 8.dp, horizontal = 32.dp)
-                                .height(64.dp),
-                            colors = CardDefaults.cardColors(
-                                containerColor = MaterialTheme.colorScheme.surfaceVariant
-                            )
-                        ) {
-                            Box(modifier = Modifier.fillMaxSize()) {
-
-                                // Botón de eliminar
-                                IconButton(
-                                    onClick = {
-                                        // Remover el item de la lista
-                                        removeAvailability(agendaAvailabilityMap, date, time)
-                                        selectedDateTimeList.remove(Pair(date, time))
-                                    },
-                                    modifier = Modifier
-                                        .align(Alignment.TopEnd)
-                                        .padding(4.dp)
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Default.Delete,
-                                        contentDescription = "Eliminar",
-                                    )
-                                }
-
-                                Column(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(start = 16.dp, top = 16.dp) // Asegura espacio para el botón
-                                ) {
-                                    Text(
-                                        text = "${date.format(DateTimeFormatter.ofPattern("MMM dd yyyy"))}"
-                                    )
-
-                                    Text(
-                                        text = "${time.format(DateTimeFormatter.ofPattern("hh:mm a"))}"
-                                    )
-                                }
-                            }
-                        }
-                    }
-                }
-
-            }
-
-
-
-
-
-            if (timeDialogState.value) {
-                pickedDate?.let { date ->
-                    SelectTimeByDate(
-                        agendaAvailabilityMap = agendaAvailabilityMap,
-                        selectedDate = date,
-                        onConfirm = { pickedTime = it },
-                        onDismiss = { timeDialogState.value = false }
-                    )
-                }
-            }
-
-            MaterialDialog(
-                dialogState = dateDialogState,
-                buttons = {
-
-                    //Positive button, si la fecha no es valida se desactiva el boton ok
-                    positiveButton(
-                        text = "Ok",
-                        disableDismiss = !isDateValid
-                    ){
-                        if(isDateValid)
-                        {
-                            timeDialogState.value = true
-                            dateDialogState.showing = false
-                        }
-                    }
-                    negativeButton(text = "Cancel")
-                },
-                properties = DialogProperties(
-                    dismissOnClickOutside = true
-                )
-            ) {
-                datepicker(
-                    initialDate = LocalDate.now(),
-                    title = "Pick a Date",
-                    // Este parámetro espera que el validador se ejecute para cada fecha seleccionada
-                    allowedDateValidator = { selectedDate ->
-                        val currentDate = LocalDate.now()
-                        val isAfterOrEqualToToday = !selectedDate.isBefore(currentDate)
-                        val isNotWeekend = selectedDate.dayOfWeek != DayOfWeek.SATURDAY && selectedDate.dayOfWeek != DayOfWeek.SUNDAY
-
-                        isAfterOrEqualToToday && isNotWeekend
-                    },
-                    // Cuando el usuario selecciona una nueva fecha, actualizamos isDateValid
-                    onDateChange = { selectedDate ->
-                        pickedDate = selectedDate
-                        // Validar la fecha seleccionada en el cambio de fecha
-                        val currentDate = LocalDate.now()
-                        val isAfterOrEqualToToday = !selectedDate.isBefore(currentDate)
-
-                        val isNotWeekend = selectedDate.dayOfWeek != DayOfWeek.SATURDAY && selectedDate.dayOfWeek != DayOfWeek.SUNDAY
-                        isDateValid = isAfterOrEqualToToday && isNotWeekend
-                    }
-                )
-            }
-
-
-        }
     }
 }
 
@@ -568,6 +279,6 @@ fun SelectTimeByDate(
                     }
                 }
             }
-            }
         }
+    }
 }

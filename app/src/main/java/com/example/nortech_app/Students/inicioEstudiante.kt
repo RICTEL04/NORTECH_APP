@@ -44,10 +44,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
+import com.example.nortech_app.Abogados.agruparCitasPorDia
 import com.example.nortech_app.Visits.BottomNavigationBar
 import com.example.nortech_app.Visits.NoticiasCarousel
 import com.example.nortech_app.Visits.NoticiasGrid
+import model.Cita
 import viewmodel.UserViewModel
+import java.time.LocalDate
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -64,7 +67,14 @@ fun MainEstudianteScreen(viewModel: UserViewModel, navController: NavController)
         noticias.forEach {
             Log.d("NoticiasURL", "URL de imagen: ${it.Image_URL}")
         }
+        viewModel.getAllCitas()
     }
+
+    val agendaCitasElements =  remember { mutableStateOf<Map<LocalDate, List<Cita>>>(emptyMap()) }
+    agendaCitasElements.value = agruparCitasPorDia(viewModel.allCitasPendientes.value?: emptyList())
+
+    val cita = agendaCitasElements.value.entries.firstOrNull()?.value?.firstOrNull()
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -132,12 +142,30 @@ fun MainEstudianteScreen(viewModel: UserViewModel, navController: NavController)
                             color = Color(0xFF1E88E5) // Azul
                         )
                         Spacer(modifier = Modifier.height(15.dp))
+                        if(cita==null) {
+                            Text(
+                                text = "No hay citas pendientes",
+                                fontSize = 18.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.Gray // Azul
+                            )
+                        }
                         Row(
                             horizontalArrangement = Arrangement.SpaceBetween,
                             modifier = Modifier.fillMaxWidth()
                         ) {
-                            Text(text = "Día: 28-09-2004", fontSize = 16.sp, color = Color.Gray)
-                            Text(text = "Hora: 15:00", fontSize = 16.sp, color = Color.Gray)
+                            if (cita != null) {
+                                Text(
+                                    text = "Fecha: ${cita?.dia.toString()} / ${cita?.mes.toString()} / ${cita?.anio.toString()}",
+                                    fontSize = 16.sp,
+                                    color = Color.Gray
+                                )
+                                Text(
+                                    text = "Hora: ${cita?.hora.toString()}",
+                                    fontSize = 16.sp,
+                                    color = Color.Gray
+                                )
+                            }
                         }
                     }
                 }

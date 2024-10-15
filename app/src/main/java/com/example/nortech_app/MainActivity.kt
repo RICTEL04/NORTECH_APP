@@ -19,7 +19,7 @@ import io.github.jan.supabase.storage.Storage
 class MainActivity : ComponentActivity() {
     val supabase: SupabaseClient = createSupabaseClient(
         supabaseUrl = "https://wlrjyngxgupgafqzyxvs.supabase.co",
-        supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indscmp5bmd4Z3VwZ2FmcXp5eHZzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjU0MDI2NzIsImV4cCI6MjA0MDk3ODY3Mn0.atQpLuA-KA50fO3gScLqdRUefhTfv7x8FlVWdjOHAIg"
+        supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indscmp5bmd4Z3VwZ2FmcXp5eHZzIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTcyNTQwMjY3MiwiZXhwIjoyMDQwOTc4NjcyfQ.Em7LF1eM5d1Hvz7yrIyt_B4A7E4j_uavClpb5Q6QNQQ"
     ) {
         install(Storage)
         install(Auth)

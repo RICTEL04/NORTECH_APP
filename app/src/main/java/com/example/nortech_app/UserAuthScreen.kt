@@ -1,10 +1,18 @@
 package com.example.nortech_app
 
 import HumanRightsView
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.Text
+import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -15,9 +23,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.nortech_app.Abogados.AddEstudiante
 import com.example.nortech_app.Abogados.AgendaView
 import com.example.nortech_app.Abogados.CasoForm
 import com.example.nortech_app.Abogados.CasosView
@@ -42,11 +52,15 @@ import com.example.nortech_app.Abogados.LoadingScreen
 import com.example.nortech_app.Visits.MainScreen
 import com.example.nortech_app.Abogados.NotFormScreen
 import com.example.nortech_app.Abogados.NoticiaUPFormScreen
+import com.example.nortech_app.Abogados.UPFormCaso
 import com.example.nortech_app.Visits.DetalleNoticiaScreen
+import com.example.nortech_app.Visits.LeyesAmenazas
+import com.example.nortech_app.Visits.LeyesAsalto
+import com.example.nortech_app.Visits.LeyesRobo
 import com.example.nortech_app.Visits.NotificationsScreen
 import com.example.nortech_app.Visits.ProfileScreen
 import com.example.nortech_app.Visits.SolicitudesScreen
-import com.example.nortech_app.Visits.VerNotGeneral
+//import com.example.nortech_app.Visits.VerNotGeneral
 import io.github.jan.supabase.gotrue.SessionStatus
 import kotlinx.coroutines.delay
 import viewmodel.UserViewModel
@@ -58,7 +72,7 @@ fun UserAuthScreen(viewModel: UserViewModel) {
     NavHost(navController, startDestination = "home") {
         composable("home") { LegalSolutionsScreen(navController) }
         composable("login") { LoginScreen(viewModel, navController, viewModel.rol.value) }
-        composable("Register") { RegisterScreen(viewModel, navController, viewModel.rol.value) }
+        composable("Register") { RegisterScreen(viewModel, navController) }
         composable("Main") {
             if (viewModel.rol.value ==""){
                 LOAD_VIEW(viewModel)
@@ -73,31 +87,35 @@ fun UserAuthScreen(viewModel: UserViewModel) {
                 MainView(viewModel, navController)
             }
         }
-        composable("Notification") { NotificationsScreen(navController) }
+        composable("Notification") { NotificationsScreen(navController, viewModel) }
         composable("Profile") { ProfileScreen(viewModel,navController) }
         composable("Derechos") { LawCategoriesGrid(navController) }
         composable("Solicitudes") { SolicitudesScreen(navController, viewModel) }
-        composable("VerNot") { VerNotGeneral(navController) }
         composable("VerDerechos") { HumanRightsView(navController) }
+        composable("LeyesRobo") { LeyesRobo(navController) }
+        composable("LeyesAsalto") { LeyesAsalto(navController) }
+        composable("LeyesAmenazas") { LeyesAmenazas(navController) }
 
         // Estudiantes
-        composable("AgendaEstudiante") { AgendaScreen(navController) }
-        composable("CasosEstudiantes") { CasosScreen(navController) }
-        composable("NotificacionEstudiantes") { NotificationsScreenEstudiante(navController) }
+        composable("AgendaEstudiante") { AgendaScreen(navController,viewModel) }
+        composable("CasosEstudiantes") { CasosScreen(navController, viewModel) }
+        composable("NotificacionEstudiantes") { NotificationsScreenEstudiante(navController, viewModel) }
         composable("PerfilEstudiantes") { ProfileEstudianteScreen(viewModel,navController) }
         composable("VerNotificacionesEstudiantes") { VerNotificacion(navController) }
-        composable("VerCasoEstudiantes") { VerCasoViewEstudiante(navController) }
+        composable("VerCasoEstudiantes") { VerCasoViewEstudiante(navController, viewModel) }
 
         // Abogados
         composable("PerfilAbogado") { PerfilView(viewModel,navController) }
         composable("NoticiaForm") { NotFormScreen(viewModel,navController) }
-        composable("AgendaAbogado") { AgendaView(navController) }
+        composable("AgendaAbogado") { AgendaView(navController, viewModel) }
         composable("CasosAbogado") { CasosView(navController, viewModel) }
-        composable("EstudiantesAbogado") { EstudiantesView(navController) }
+        composable("EstudiantesAbogado") { EstudiantesView(navController, viewModel) }
         composable("SolicitudesAbogado") { SolicitudesView(navController, viewModel) }
         composable("VerCasoAbogado") { VerCasoView(navController, viewModel) }
-        composable("VerEstudianteAbogado") { VerEstudiantesView(navController) }
+        composable("VerEstudianteAbogado") { VerEstudiantesView(navController, viewModel) }
         composable("VerSolicitudAbogado") { VerSolicitudView(navController) }
+
+        composable("AddEstudiante") { AddEstudiante(navController, viewModel)}
 
         composable("CrearCaso") { CasoForm(viewModel,navController) }
         composable("detalle_noticia") { DetalleNoticiaScreen(navController, viewModel.id_not.value ,viewModel.TituloNot.value, viewModel.DescripcionNot.value, viewModel.URL_Not.value, viewModel) }
@@ -108,6 +126,7 @@ fun UserAuthScreen(viewModel: UserViewModel) {
         composable("error") { ErrorScreen("Network error") }
 
         composable ("UPForm") {NoticiaUPFormScreen(viewModel,navController)}
+        composable ("UPFormCaso") {UPFormCaso(navController, viewModel)}
     }
 
 
@@ -141,12 +160,14 @@ fun UserAuthScreen(viewModel: UserViewModel) {
 
 @Composable
 fun LOAD_VIEW(viewModel: UserViewModel) { var isLoading by remember { mutableStateOf(true) }
+    val cargas = remember { mutableStateOf(1)}
     LaunchedEffect(Unit) {
         while (true) {
             isLoading = true
             viewModel.getRol()
             delay(3000L) // Espera 3 segundos antes de volver a ejecutar la solicitud
             isLoading = false
+            cargas.value += 1
         }
     }
 
@@ -154,13 +175,30 @@ fun LOAD_VIEW(viewModel: UserViewModel) { var isLoading by remember { mutableSta
         modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {
-        if (isLoading) {
-            CircularProgressIndicator() // Ruedita de carga
-        } else {
-            // Aquí puedes poner el contenido cuando no está cargando
-            Text("Contenido cargado")
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            if (isLoading) {
+                CircularProgressIndicator() // Ruedita de carga
+            } else {
+                // Aquí puedes poner el contenido cuando no está cargando
+                Text("Contenido cargado")
+            }
+
+            // Logout Button
+            if(cargas.value>=5) {
+                Button(
+                    onClick = { viewModel.signOut() },
+                    modifier = Modifier.fillMaxWidth()
+                        .padding(top = 16.dp) // Agrega un padding superior para separar el botón del contenido
+                ) {
+                    Text(text = "Volver al Inicio")
+                }
+            }
         }
     }
+
 }
 
 

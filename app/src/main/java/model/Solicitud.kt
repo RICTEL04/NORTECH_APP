@@ -1,6 +1,7 @@
 package model
 
 import kotlinx.serialization.Serializable
+import androidx.compose.runtime.MutableState
 import java.util.UUID
 
 @Serializable
@@ -13,5 +14,6 @@ data class Solicitud(
     val dia: String,
     val hora: String,
     val descripcion: String,
-    val motivo: String
+    val motivo: String,
+    val estado_solicitud:String="1"
 )
